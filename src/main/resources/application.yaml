@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    #   url: jdbc:h2:file:/data/demo
+    url: jdbc:h2:~/db
+    username: h2
+    password: h2
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create-drop
+    generate-ddl: true
+  h2:
+    console.enabled: true
+
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+      hibernate:
+        SQL: WARN
+        type: WARN
+    root: WARN
+
