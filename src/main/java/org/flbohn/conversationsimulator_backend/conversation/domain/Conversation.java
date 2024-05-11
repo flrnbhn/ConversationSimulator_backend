@@ -3,6 +3,7 @@ package org.flbohn.conversationsimulator_backend.conversation.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,8 +24,11 @@ public class Conversation {
 
     private Date conversationStartDate;
 
-    @OneToMany(mappedBy = "conversationOfMessage", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "conversationOfMessage", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messagesOfConversation;
+
+    @ManyToOne
+    private Exercise exercise;
 
     public Conversation(Date conversationStartDate) {
         this.conversationStartDate = conversationStartDate;

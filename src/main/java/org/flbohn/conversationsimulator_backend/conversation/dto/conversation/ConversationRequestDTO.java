@@ -3,7 +3,8 @@ package org.flbohn.conversationsimulator_backend.conversation.dto.conversation;
 import java.util.Date;
 
 public record ConversationRequestDTO(
-        Date conversationStartDate
+        Date conversationStartDate,
+        Long exerciseId
 ) {
 
 }
