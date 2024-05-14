@@ -30,6 +30,8 @@ public class Exercise {
 
     private String roleSystem;
 
+    private int numberOfMessagesTillFailure;
+
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
 
@@ -50,12 +52,13 @@ public class Exercise {
 
     }
 
-    public Exercise(String title, String szenario, String furtherInformation, String roleUser, String roleSystem) {
+    public Exercise(String title, String szenario, String furtherInformation, String roleUser, String roleSystem, int numberOfMessagesTillFailure) {
         this.title = title;
         this.szenario = szenario;
         this.furtherInformation = furtherInformation;
         this.roleUser = roleUser;
         this.roleSystem = roleSystem;
+        this.numberOfMessagesTillFailure = numberOfMessagesTillFailure;
     }
 
     public Exercise(String title, String szenario, String furtherInformation, List<Task> tasks) {
@@ -79,18 +82,5 @@ public class Exercise {
         return Objects.hash(id, version, title, szenario, furtherInformation, tasks);
     }
 
-    @Override
-    public String toString() {
-        return "Exercise{" +
-                "id=" + id +
-                ", version=" + version +
-                ", title='" + title + '\'' +
-                ", szenario='" + szenario + '\'' +
-                ", furtherInformation='" + furtherInformation + '\'' +
-                ", roleUser='" + roleUser + '\'' +
-                ", roleSystem='" + roleSystem + '\'' +
-                ", tasks=" + tasks +
-                ", conversations=" + conversations +
-                '}';
-    }
+
 }

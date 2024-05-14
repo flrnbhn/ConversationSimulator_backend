@@ -3,7 +3,9 @@ package org.flbohn.conversationsimulator_backend.conversation.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.flbohn.conversationsimulator_backend.conversation.types.ConversationStatus;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
+import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,19 +26,28 @@ public class Conversation {
 
     private Date conversationStartDate;
 
+    private ConversationStatus conversationStatus;
+
     @OneToMany(mappedBy = "conversationOfMessage", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messagesOfConversation;
 
     @ManyToOne
     private Exercise exercise;
 
+    @ManyToMany(mappedBy = "conversationsWhereTaskCompleted", cascade = CascadeType.ALL)
+    private List<Task> completedTasks;
+
     public Conversation(Date conversationStartDate) {
         this.conversationStartDate = conversationStartDate;
         messagesOfConversation = new ArrayList<>();
+        completedTasks = new ArrayList<>();
+        conversationStatus = ConversationStatus.NOT_STARTED;
     }
 
     public Conversation() {
         messagesOfConversation = new ArrayList<>();
+        completedTasks = new ArrayList<>();
+        conversationStatus = ConversationStatus.NOT_STARTED;
     }
 
     @Override
@@ -52,11 +63,4 @@ public class Conversation {
         return Objects.hash(id, messagesOfConversation);
     }
 
-    @Override
-    public String toString() {
-        return "Conversation{" +
-                "id=" + id +
-                ", messagesOfConversation=" + messagesOfConversation +
-                '}';
-    }
 }

@@ -2,6 +2,7 @@ package org.flbohn.conversationsimulator_backend.exercise.service;
 
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
+import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
 import org.flbohn.conversationsimulator_backend.exercise.repository.ExerciseRepository;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,11 @@ public class ExerciseServiceImpl implements ExerciseService {
     @Override
     public void setConversationInExercise(long id, Conversation conversation) {
         exerciseRepository.findById(id).orElseThrow().getConversations().add(conversation);
+    }
+
+    @Override
+    public List<Task> getAllTasksForExercise(long exerciseId) {
+        return exerciseRepository.findById(exerciseId).orElseThrow().getTasks();
     }
 
 

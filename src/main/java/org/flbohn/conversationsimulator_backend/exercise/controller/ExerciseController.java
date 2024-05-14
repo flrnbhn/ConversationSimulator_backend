@@ -2,11 +2,13 @@ package org.flbohn.conversationsimulator_backend.exercise.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.flbohn.conversationsimulator_backend.exercise.dto.exercise.ExerciseResponseDTO;
+import org.flbohn.conversationsimulator_backend.exercise.dto.task.TaskResponseDTO;
 import org.flbohn.conversationsimulator_backend.exercise.service.ExerciseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,5 +30,19 @@ public class ExerciseController {
     public ResponseEntity<List<ExerciseResponseDTO>> getAllExercises() {
         List<ExerciseResponseDTO> exerciseResponseDTOS = exerciseService.getAllExercises().stream().map(ExerciseResponseDTO::from).toList();
         return new ResponseEntity<>(exerciseResponseDTOS, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Get all Tasks from one Exercise")
+    @GetMapping("/tasks/{exerciseId}")
+    public ResponseEntity<List<TaskResponseDTO>> getAllTasksForExercise(@PathVariable Long exerciseId) {
+        List<TaskResponseDTO> taskResponseDTOs = exerciseService.getAllTasksForExercise(exerciseId).stream().map(TaskResponseDTO::from).toList();
+        return new ResponseEntity<>(taskResponseDTOs, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Get Exercise by Id")
+    @GetMapping("/{exerciseId}")
+    public ResponseEntity<ExerciseResponseDTO> getExerciseById(@PathVariable Long exerciseId) {
+        ExerciseResponseDTO exerciseResponseDTO = ExerciseResponseDTO.from(exerciseService.getExerciseById(exerciseId));
+        return new ResponseEntity<>(exerciseResponseDTO, HttpStatus.OK);
     }
 }

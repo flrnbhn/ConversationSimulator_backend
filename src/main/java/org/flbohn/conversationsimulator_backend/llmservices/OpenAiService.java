@@ -30,8 +30,12 @@ public class OpenAiService {
     }
 
     public String sendMessage(List<Message> allMessages, Exercise exercise) {
-        String message;
         List<ChatCompletionMessage> chatCompletionMessageList = createChatCompletionMessageList(allMessages, exercise);
+        return callOpenAi(chatCompletionMessageList);
+    }
+
+    private String callOpenAi(List<ChatCompletionMessage> chatCompletionMessageList) {
+        String message;
         ResponseEntity<ChatCompletion> response = openAiApi.chatCompletionEntity(
                 new ChatCompletionRequest(chatCompletionMessageList, "gpt-3.5-turbo", 0.8f, false));
 
@@ -42,6 +46,7 @@ public class OpenAiService {
         }
         return message;
     }
+
 
     private List<ChatCompletionMessage> createChatCompletionMessageList(List<Message> allMessages, Exercise exercise) {
         List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
@@ -77,4 +82,36 @@ public class OpenAiService {
         String conclusion = "Now start to take on your role and open the conversation ";
         return introduction + szenario + tasks + explanationRole + roles + language + conclusion;
     }
+
+    public String evaluateTasksInConversation(List<Message> allMessages, Exercise exercise) {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        chatCompletionMessageList.add(new ChatCompletionMessage(createSystemExplanationStringForTaskEvaluation(exercise), Role.SYSTEM));
+      /*  allMessages.forEach(message ->
+                chatCompletionMessageList.add(new ChatCompletionMessage(message.getMessage(), decideRole(message.getConversationMember()))));*/
+
+        String conversationString = allMessages.stream()
+                .map(message -> message.getConversationMember() + ": " + message.getMessage())
+                .collect(Collectors.joining("\n"));
+
+        chatCompletionMessageList.add(new ChatCompletionMessage(conversationString, Role.USER));
+
+        //chatCompletionMessageList.add(new ChatCompletionMessage("Please give me back a comma-separated list of all points that have already been completed. Don't forget the points you have already mentioned", Role.USER));
+        return callOpenAi(chatCompletionMessageList);
+    }
+
+    private String createSystemExplanationStringForTaskEvaluation(Exercise exercise) {
+        String introduction = "You are a conversation analysis tool. Analyze the following conversation regarding: " + exercise.getSzenario() + ". ";
+
+        String roles = "The conversation involves a " + exercise.getRoleSystem() + " and a " + exercise.getRoleUser() + ". ";
+
+        String tasks = "Your task is to identify which of the following points have been already discussed and completed: ";
+        String taskList = exercise.getTasks().stream().map(Task::getDescription).collect(Collectors.joining(", "));
+        String taskDescription = tasks + taskList + ". ";
+
+        String taskClarification = "Please identify the points from the list I've given you that have already been discussed. Return only the completed points, separated by commas.";
+
+        return introduction + roles + taskDescription + taskClarification;
+    }
+
+
 }

@@ -1,11 +1,12 @@
 package org.flbohn.conversationsimulator_backend.conversation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import org.flbohn.conversationsimulator_backend.conversation.domain.Message;
 import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.ConversationRequestDTO;
+import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.ConversationStatusRequestDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.message.MessageRequestDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.message.MessageResponseDTO;
 import org.flbohn.conversationsimulator_backend.conversation.service.ConversationService;
+import org.flbohn.conversationsimulator_backend.exercise.dto.task.TaskResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -35,9 +37,9 @@ public class ConversationController {
 
     @Operation(summary = "Init Conversation to initiate the conversation, to tell llm sends the first message")
     @GetMapping("/init/{conversationId}")
-    public ResponseEntity<Message> initConversation(@PathVariable Long conversationId) {
+    public ResponseEntity<MessageResponseDTO> initConversation(@PathVariable Long conversationId) {
         try {
-            return new ResponseEntity<>(conversationService.initConversation(conversationId), HttpStatus.OK);
+            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.initConversation(conversationId)), HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -50,6 +52,24 @@ public class ConversationController {
             return new ResponseEntity<>(MessageResponseDTO.from(conversationService.createMessage(message.message(), message.conversationMember(), message.conversationID())), HttpStatus.OK);
         } catch (NoSuchElementException e) {
             log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Operation(summary = "Get all finished Tasks")
+    @GetMapping("/finishedTasks/{conversationId}")
+    public ResponseEntity<List<TaskResponseDTO>> getFinishedTasks(@PathVariable Long conversationId) {
+        return new ResponseEntity<>(conversationService.getEvaluatedTasks(conversationId).stream()
+                .map(TaskResponseDTO::from)
+                .toList(), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Change conversation status")
+    @PostMapping("/conversationStatus/{conversationId}")
+    public ResponseEntity<Void> changeConversationStatus(@PathVariable Long conversationId, @RequestBody ConversationStatusRequestDTO conversationStatusDTO) {
+        if (conversationService.changeConversationStatus(conversationId, conversationStatusDTO.conversationStatus())) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }

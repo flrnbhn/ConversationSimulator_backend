@@ -33,13 +33,12 @@ public class ExerciseInitializer implements InitializingBean {
         List<Exercise> exercises = new ArrayList<>();
         exercises.add(createFoodOrderRestaurantExercise());
         exercises.add(createDoktorExercise());
-
-
+        exercises.add(createTestExercise());
         return exercises;
     }
 
     private Exercise createFoodOrderRestaurantExercise() {
-        Exercise foodOrderRestaurant = new Exercise("Meal order", "Ordering food in a restaurant", "In einem Noblen Restaurant", "guest of the restaurant", "waiter of the restaurant");
+        Exercise foodOrderRestaurant = new Exercise("Meal order", "Ordering food in a restaurant", "In einem Noblen Restaurant", "guest of the restaurant", "waiter of the restaurant", 15);
         Task greetingTask = new Task("Greet the waiter");
         Task starterTask = new Task("Order starter");
         Task mainTask = new Task("Order main course");
@@ -55,7 +54,7 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createDoktorExercise() {
-        Exercise doktorDate = new Exercise("Arzt Termin machen", "Du machst einen Arzt Termin", "Zahnarzt", "patient", "arzt");
+        Exercise doktorDate = new Exercise("Arzt Termin machen", "Du machst einen Arzt Termin", "Zahnarzt", "patient", "arzt", 12);
         Task problemTask = new Task("Schilder das Problem");
         Task timeTask = new Task("Mache eine Uhrzeit aus");
         List<Task> tasks = new ArrayList<>(List.of(problemTask, timeTask));
@@ -64,5 +63,16 @@ public class ExerciseInitializer implements InitializingBean {
         exerciseRepository.save(doktorDate);
         taskRepository.saveAll(tasks);
         return doktorDate;
+    }
+
+    private Exercise createTestExercise() {
+        Exercise exercise = new Exercise("Grüßen", "Du siehst jemanden auf der Straße und grüßt ihn", "", "person", "person", 5);
+        Task problemTask = new Task("Grüße die Person zurück");
+        List<Task> tasks = new ArrayList<>(List.of(problemTask));
+        tasks.forEach(task -> task.setExercise(exercise));
+        exercise.setTasks(tasks);
+        exerciseRepository.save(exercise);
+        taskRepository.saveAll(tasks);
+        return exercise;
     }
 }

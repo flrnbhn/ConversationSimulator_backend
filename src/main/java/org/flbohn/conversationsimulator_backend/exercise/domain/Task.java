@@ -3,7 +3,10 @@ package org.flbohn.conversationsimulator_backend.exercise.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -23,10 +26,15 @@ public class Task {
 
     private String description;
 
+    @ManyToMany
+    private List<Conversation> conversationsWhereTaskCompleted;
+
     public Task() {
+        conversationsWhereTaskCompleted = new ArrayList<>();
     }
 
     public Task(String description) {
+        conversationsWhereTaskCompleted = new ArrayList<>();
         this.description = description;
     }
 
@@ -41,15 +49,5 @@ public class Task {
     @Override
     public int hashCode() {
         return Objects.hash(id, version, exercise, description);
-    }
-
-    @Override
-    public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", version=" + version +
-                ", exercise=" + exercise +
-                ", description='" + description + '\'' +
-                '}';
     }
 }

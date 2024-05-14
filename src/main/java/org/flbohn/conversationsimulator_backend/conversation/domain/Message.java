@@ -19,6 +19,7 @@ public class Message {
     @Version
     private long version;
 
+    @Column(length = 1000)
     private String message;
 
     private ConversationMember conversationMember;
@@ -46,15 +47,4 @@ public class Message {
     public int hashCode() {
         return Objects.hash(id, conversationMember, message);
     }
-
-    @Override
-    public String toString() {
-        return "Message{" +
-                "id=" + id +
-                ", conversationMember=" + conversationMember +
-                ", message='" + message + '\'' +
-                '}';
-    }
-
-
 }
