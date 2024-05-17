@@ -38,7 +38,7 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createFoodOrderRestaurantExercise() {
-        Exercise foodOrderRestaurant = new Exercise("Meal order", "Ordering food in a restaurant", "In einem Noblen Restaurant", "guest of the restaurant", "waiter of the restaurant", 15);
+        Exercise foodOrderRestaurant = new Exercise("Meal order", "Ordering food in a restaurant", "In einem Noblen Restaurant", "Guest", "Waiter", 25);
         Task greetingTask = new Task("Greet the waiter");
         Task starterTask = new Task("Order starter");
         Task mainTask = new Task("Order main course");
@@ -54,7 +54,7 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createDoktorExercise() {
-        Exercise doktorDate = new Exercise("Arzt Termin machen", "Du machst einen Arzt Termin", "Zahnarzt", "patient", "arzt", 12);
+        Exercise doktorDate = new Exercise("Arzt Termin machen", "Du machst einen Arzt Termin", "Zahnarzt", "patient", "arzt", 5);
         Task problemTask = new Task("Schilder das Problem");
         Task timeTask = new Task("Mache eine Uhrzeit aus");
         List<Task> tasks = new ArrayList<>(List.of(problemTask, timeTask));

@@ -1,18 +1,17 @@
 package org.flbohn.conversationsimulator_backend.exercise.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import org.flbohn.conversationsimulator_backend.exercise.dto.exercise.ExerciseRequestDTO;
 import org.flbohn.conversationsimulator_backend.exercise.dto.exercise.ExerciseResponseDTO;
 import org.flbohn.conversationsimulator_backend.exercise.dto.task.TaskResponseDTO;
 import org.flbohn.conversationsimulator_backend.exercise.service.ExerciseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/exercise")
@@ -44,5 +43,19 @@ public class ExerciseController {
     public ResponseEntity<ExerciseResponseDTO> getExerciseById(@PathVariable Long exerciseId) {
         ExerciseResponseDTO exerciseResponseDTO = ExerciseResponseDTO.from(exerciseService.getExerciseById(exerciseId));
         return new ResponseEntity<>(exerciseResponseDTO, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Post new Exercise")
+    @PostMapping("")
+    public ResponseEntity<Long> postExercise(@RequestBody ExerciseRequestDTO exerciseRequestDTO) {
+        Long exerciseId = exerciseService.createNewExercise(exerciseRequestDTO.title(),
+                exerciseRequestDTO.szenario(),
+                exerciseRequestDTO.furtherInformation(),
+                exerciseRequestDTO.roleUser(),
+                exerciseRequestDTO.roleSystem(),
+                exerciseRequestDTO.numberOfMessagesTillFailure(),
+                exerciseRequestDTO.taskRequestDTO());
+
+        return new ResponseEntity<>(exerciseId, HttpStatus.OK);
     }
 }

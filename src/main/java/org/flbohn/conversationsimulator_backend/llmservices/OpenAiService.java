@@ -31,13 +31,13 @@ public class OpenAiService {
 
     public String sendMessage(List<Message> allMessages, Exercise exercise) {
         List<ChatCompletionMessage> chatCompletionMessageList = createChatCompletionMessageList(allMessages, exercise);
-        return callOpenAi(chatCompletionMessageList);
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
     }
 
-    private String callOpenAi(List<ChatCompletionMessage> chatCompletionMessageList) {
+    private String callOpenAi(List<ChatCompletionMessage> chatCompletionMessageList, String gpt_model) {
         String message;
         ResponseEntity<ChatCompletion> response = openAiApi.chatCompletionEntity(
-                new ChatCompletionRequest(chatCompletionMessageList, "gpt-3.5-turbo", 0.8f, false));
+                new ChatCompletionRequest(chatCompletionMessageList, gpt_model, 0.8f, false));
 
         if (response.getBody() != null) {
             message = response.getBody().choices().getFirst().message().content();
@@ -96,7 +96,7 @@ public class OpenAiService {
         chatCompletionMessageList.add(new ChatCompletionMessage(conversationString, Role.USER));
 
         //chatCompletionMessageList.add(new ChatCompletionMessage("Please give me back a comma-separated list of all points that have already been completed. Don't forget the points you have already mentioned", Role.USER));
-        return callOpenAi(chatCompletionMessageList);
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
     }
 
     private String createSystemExplanationStringForTaskEvaluation(Exercise exercise) {

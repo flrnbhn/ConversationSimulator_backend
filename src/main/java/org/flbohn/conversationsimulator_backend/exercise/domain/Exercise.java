@@ -59,6 +59,8 @@ public class Exercise {
         this.roleUser = roleUser;
         this.roleSystem = roleSystem;
         this.numberOfMessagesTillFailure = numberOfMessagesTillFailure;
+        this.tasks = new ArrayList<>();
+        this.conversations = new ArrayList<>();
     }
 
     public Exercise(String title, String szenario, String furtherInformation, List<Task> tasks) {

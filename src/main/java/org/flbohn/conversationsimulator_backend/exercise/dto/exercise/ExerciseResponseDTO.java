@@ -11,6 +11,8 @@ public record ExerciseResponseDTO(
         String title,
         String szenario,
         String furtherInformation,
+        String roleUser,
+        String roleSystem,
         Integer numberOfMessagesTillFailure,
         List<TaskResponseDTO> taskResponseDTO
 ) {
@@ -20,6 +22,8 @@ public record ExerciseResponseDTO(
                 exercise.getTitle(),
                 exercise.getSzenario(),
                 exercise.getFurtherInformation(),
+                exercise.getRoleUser(),
+                exercise.getRoleSystem(),
                 exercise.getNumberOfMessagesTillFailure(),
                 new ArrayList<>(exercise.getTasks().stream()
                         .map(TaskResponseDTO::from)
