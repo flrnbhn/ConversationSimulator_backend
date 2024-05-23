@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.flbohn.conversationsimulator_backend.conversation.types.ConversationMember;
+import org.flbohn.conversationsimulator_backend.evaluation.domain.Mistake;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -27,12 +30,17 @@ public class Message {
     @ManyToOne
     private Conversation conversationOfMessage;
 
+    @OneToMany(mappedBy = "messageOfTheMistake", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Mistake> mistakes;
+
     public Message(String message, ConversationMember conversationMember) {
         this.conversationMember = conversationMember;
         this.message = message;
+        this.mistakes = new ArrayList<>();
     }
 
     public Message() {
+        this.mistakes = new ArrayList<>();
     }
 
     @Override

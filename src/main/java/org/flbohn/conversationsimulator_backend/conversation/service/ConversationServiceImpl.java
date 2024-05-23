@@ -100,6 +100,11 @@ public class ConversationServiceImpl implements ConversationService {
         }
     }
 
+    @Override
+    public Conversation getConversationById(Long conversationId) {
+        return conversationRepository.findById(conversationId).orElseThrow();
+    }
+
 
     private List<Task> calcEvaluatedTasks(List<Message> allMessages, Exercise exercise, Conversation conversation) {
         String evaluatedTaskMessage = openAiService.evaluateTasksInConversation(allMessages, exercise);
@@ -107,17 +112,15 @@ public class ConversationServiceImpl implements ConversationService {
 
         List<String> evaluatedTasksList = Arrays.asList(evaluatedTaskMessage.split(","));
 
-        evaluatedTasksList.forEach(evaluatedTask -> {
-            exercise.getTasks().stream()
-                    .filter(task -> task.getDescription().equals(evaluatedTask.trim()))
-                    .findFirst()
-                    .ifPresent(task -> {
-                        if (!conversation.getCompletedTasks().contains(task)) {
-                            conversation.getCompletedTasks().add(task);
-                            task.getConversationsWhereTaskCompleted().add(conversation);
-                        }
-                    });
-        });
+        evaluatedTasksList.forEach(evaluatedTask -> exercise.getTasks().stream()
+                .filter(task -> task.getDescription().equals(evaluatedTask.trim()))
+                .findFirst()
+                .ifPresent(task -> {
+                    if (!conversation.getCompletedTasks().contains(task)) {
+                        conversation.getCompletedTasks().add(task);
+                        task.getConversationsWhereTaskCompleted().add(conversation);
+                    }
+                }));
 
         return conversation.getCompletedTasks();
 

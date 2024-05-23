@@ -23,5 +23,7 @@ public interface ConversationService {
 
     boolean changeConversationStatus(Long conversationId, ConversationStatus status);
 
+    Conversation getConversationById(Long conversationId);
+
 
 }

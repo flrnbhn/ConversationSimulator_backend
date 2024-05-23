@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.flbohn.conversationsimulator_backend.conversation.types.ConversationStatus;
+import org.flbohn.conversationsimulator_backend.evaluation.domain.Mistake;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
 
@@ -37,16 +38,21 @@ public class Conversation {
     @ManyToMany(mappedBy = "conversationsWhereTaskCompleted", cascade = CascadeType.ALL)
     private List<Task> completedTasks;
 
+    @OneToMany(mappedBy = "conversationOfTheMistake", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Mistake> mistakes;
+
     public Conversation(Date conversationStartDate) {
         this.conversationStartDate = conversationStartDate;
         messagesOfConversation = new ArrayList<>();
         completedTasks = new ArrayList<>();
+        mistakes = new ArrayList<>();
         conversationStatus = ConversationStatus.NOT_STARTED;
     }
 
     public Conversation() {
         messagesOfConversation = new ArrayList<>();
         completedTasks = new ArrayList<>();
+        mistakes = new ArrayList<>();
         conversationStatus = ConversationStatus.NOT_STARTED;
     }
 
