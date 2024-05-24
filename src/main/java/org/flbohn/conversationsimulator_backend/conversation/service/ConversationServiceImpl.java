@@ -9,6 +9,7 @@ import org.flbohn.conversationsimulator_backend.conversation.types.ConversationS
 import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
 import org.flbohn.conversationsimulator_backend.exercise.service.ExerciseService;
+import org.flbohn.conversationsimulator_backend.learner.service.LearnerService;
 import org.flbohn.conversationsimulator_backend.llmservices.OpenAiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +30,15 @@ public class ConversationServiceImpl implements ConversationService {
 
     private final OpenAiService openAiService;
 
+    private final LearnerService learnerService;
+
     @Autowired
-    public ConversationServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, ExerciseService exerciseService, OpenAiService openAiService) {
+    public ConversationServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, ExerciseService exerciseService, OpenAiService openAiService, LearnerService learnerService) {
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
         this.exerciseService = exerciseService;
         this.openAiService = openAiService;
+        this.learnerService = learnerService;
     }
 
     @Override
@@ -143,9 +147,11 @@ public class ConversationServiceImpl implements ConversationService {
 
 
     @Override
-    public Conversation createConversation(Date conversationStartDate, Long exerciseId) {
+    public Conversation createConversation(Date conversationStartDate, Long exerciseId, Long learnerId) {
         Conversation conversation = new Conversation(conversationStartDate);
         conversation.setExercise(exerciseService.getExerciseById(exerciseId));
+        conversation.setLearner(learnerService.findLearnerById(learnerId));
+        learnerService.setConversationForLearner(conversation);
         exerciseService.setConversationInExercise(exerciseId, conversation);
         return conversationRepository.save(conversation);
     }

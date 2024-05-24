@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.flbohn.conversationsimulator_backend.conversation.types.ConversationStatus;
+import org.flbohn.conversationsimulator_backend.conversation.types.Grade;
 import org.flbohn.conversationsimulator_backend.evaluation.domain.Mistake;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
+import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,12 +43,21 @@ public class Conversation {
     @OneToMany(mappedBy = "conversationOfTheMistake", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mistake> mistakes;
 
+    @OneToOne(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Learner learner;
+
+    private Grade gradeOfConversation;
+
+    private Integer pointsOfConversation;
+
     public Conversation(Date conversationStartDate) {
         this.conversationStartDate = conversationStartDate;
         messagesOfConversation = new ArrayList<>();
         completedTasks = new ArrayList<>();
         mistakes = new ArrayList<>();
         conversationStatus = ConversationStatus.NOT_STARTED;
+        gradeOfConversation = Grade.UNRATED;
+        pointsOfConversation = 0;
     }
 
     public Conversation() {
@@ -54,6 +65,8 @@ public class Conversation {
         completedTasks = new ArrayList<>();
         mistakes = new ArrayList<>();
         conversationStatus = ConversationStatus.NOT_STARTED;
+        gradeOfConversation = Grade.UNRATED;
+        pointsOfConversation = 0;
     }
 
     @Override

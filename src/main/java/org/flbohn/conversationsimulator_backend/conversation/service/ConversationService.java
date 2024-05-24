@@ -15,7 +15,7 @@ public interface ConversationService {
 
     Message createMessage(String message, ConversationMember conversationMember, Long conversationId);
 
-    Conversation createConversation(Date conversationStartDate, Long conversationId);
+    Conversation createConversation(Date conversationStartDate, Long conversationId, Long learnerId);
 
     Message initConversation(Long conversationId);
 

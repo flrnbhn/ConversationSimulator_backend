@@ -69,6 +69,6 @@ public class LanguageCheckService {
         } catch (JsonProcessingException e) {
             return Mono.error(e);
         }
-        return mistakeResponseDTOS.isEmpty() ? Mono.empty() : Mono.just(mistakeResponseDTOS);
+        return Mono.just(mistakeResponseDTOS);
     }
 }

@@ -1,6 +1,7 @@
 package org.flbohn.conversationsimulator_backend.evaluation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import org.flbohn.conversationsimulator_backend.evaluation.dto.EvaluationResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.dto.MistakeResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.service.EvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class EvaluationController {
 
     @Operation(summary = "Check Conversation about mistakes")
     @PostMapping("/{conversationId}")
-    public ResponseEntity<List<MistakeResponseDTO>> postNewLanguageCheckForConversation(@PathVariable Long conversationId) {
+    public ResponseEntity<EvaluationResponseDTO> postNewLanguageCheckForConversation(@PathVariable Long conversationId) {
         return new ResponseEntity<>(evaluationService.receiveMistakesByConversation(conversationId), HttpStatus.OK);
     }
 }

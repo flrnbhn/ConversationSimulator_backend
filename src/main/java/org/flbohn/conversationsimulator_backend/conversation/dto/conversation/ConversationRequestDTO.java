@@ -4,7 +4,8 @@ import java.util.Date;
 
 public record ConversationRequestDTO(
         Date conversationStartDate,
-        Long exerciseId
+        Long exerciseId,
+        Long learnerId
 ) {
 
 }

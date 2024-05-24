@@ -32,7 +32,7 @@ public class ConversationController {
     @Operation(summary = "Client can create a new conversation by posting the start date of the conversation (wird noch erweitert)")
     @PostMapping("")
     public ResponseEntity<Long> postNewConversation(@RequestBody ConversationRequestDTO conversationRequestDTO) {
-        return new ResponseEntity<>(conversationService.createConversation(conversationRequestDTO.conversationStartDate(), conversationRequestDTO.exerciseId()).getId(), HttpStatus.OK);
+        return new ResponseEntity<>(conversationService.createConversation(conversationRequestDTO.conversationStartDate(), conversationRequestDTO.exerciseId(), conversationRequestDTO.learnerId()).getId(), HttpStatus.OK);
     }
 
     @Operation(summary = "Init Conversation to initiate the conversation, to tell llm sends the first message")

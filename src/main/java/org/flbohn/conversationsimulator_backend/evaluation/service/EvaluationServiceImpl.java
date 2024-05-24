@@ -4,7 +4,9 @@ import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation
 import org.flbohn.conversationsimulator_backend.conversation.domain.Message;
 import org.flbohn.conversationsimulator_backend.conversation.service.ConversationService;
 import org.flbohn.conversationsimulator_backend.conversation.types.ConversationMember;
+import org.flbohn.conversationsimulator_backend.conversation.types.Grade;
 import org.flbohn.conversationsimulator_backend.evaluation.domain.Mistake;
+import org.flbohn.conversationsimulator_backend.evaluation.dto.EvaluationResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.dto.MistakeResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.repository.MistakeRepository;
 import org.flbohn.conversationsimulator_backend.llmservices.LanguageCheckService;
@@ -50,7 +52,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
     @Override
-    public List<MistakeResponseDTO> receiveMistakesByConversation(Long conversationId) {
+    public EvaluationResponseDTO receiveMistakesByConversation(Long conversationId) {
         List<MistakeResponseDTO> allMistakeResponseDTOS = new ArrayList<>();
         Conversation conversation = conversationService.getConversationById(conversationId);
         List<Message> messages = conversation.getMessagesOfConversation().stream()
@@ -63,7 +65,10 @@ public class EvaluationServiceImpl implements EvaluationService {
             allMistakeResponseDTOS.addAll(currentMistakeResponseDTOS);
         }
 
-        return allMistakeResponseDTOS;
+        Grade grade = assignGradeToConversation(conversation, allMistakeResponseDTOS);
+        Integer points = assignPointsToConversation(conversation, grade);
+
+        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points);
     }
 
     private void persistMistakesInConversationAndMessage(List<MistakeResponseDTO> mistakeResponseDTOS, Conversation conversation, Message message) {
@@ -85,4 +90,29 @@ public class EvaluationServiceImpl implements EvaluationService {
             mistakeRepository.saveAll(mistakes);
         }
     }
+
+    private Grade assignGradeToConversation(Conversation conversation, List<MistakeResponseDTO> mistakeResponseDTOS) {
+        Grade grade = calculateGrade(mistakeResponseDTOS);
+        conversation.setGradeOfConversation(grade);
+        return grade;
+    }
+
+    private Grade calculateGrade(List<MistakeResponseDTO> mistakeResponseDTOS) {
+        int mistakeCount = mistakeResponseDTOS.size();
+        return switch (mistakeCount) {
+            case 0, 1 -> Grade.ONE;
+            case 2, 3, 4 -> Grade.TWO;
+            case 5, 6, 7 -> Grade.THREE;
+            case 8, 9, 10 -> Grade.FOUR;
+            case 11, 12, 13 -> Grade.FIVE;
+            default -> Grade.SIX;
+        };
+    }
+
+    private int assignPointsToConversation(Conversation conversation, Grade grade) {
+        int points = (int) (17 - 3 * grade.getNumericValue());
+        conversation.setPointsOfConversation(points);
+        return points;
+    }
+
 }
