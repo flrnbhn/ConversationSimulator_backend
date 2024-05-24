@@ -1,5 +1,6 @@
 package org.flbohn.conversationsimulator_backend.llmservices;
 
+import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 import org.flbohn.conversationsimulator_backend.conversation.domain.Message;
 import org.flbohn.conversationsimulator_backend.conversation.types.ConversationMember;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
@@ -25,19 +26,19 @@ public class OpenAiService {
         openAiApi = new OpenAiApi(System.getenv("SPRING_AI_OPENAI_API_KEY"));
     }
 
-    public String initConversation(Exercise exercise) {
-        return sendMessage(new ArrayList<>(), exercise);
+    public String initConversation(Exercise exercise, Conversation conversation) {
+        return sendMessage(new ArrayList<>(), exercise, conversation);
     }
 
-    public String sendMessage(List<Message> allMessages, Exercise exercise) {
-        List<ChatCompletionMessage> chatCompletionMessageList = createChatCompletionMessageList(allMessages, exercise);
+    public String sendMessage(List<Message> allMessages, Exercise exercise, Conversation conversation) {
+        List<ChatCompletionMessage> chatCompletionMessageList = createChatCompletionMessageList(allMessages, exercise, conversation);
         return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
     }
 
     private String callOpenAi(List<ChatCompletionMessage> chatCompletionMessageList, String gpt_model) {
         String message;
         ResponseEntity<ChatCompletion> response = openAiApi.chatCompletionEntity(
-                new ChatCompletionRequest(chatCompletionMessageList, gpt_model, 0.8f, false));
+                new ChatCompletionRequest(chatCompletionMessageList, gpt_model, 0.9f, false));
 
         if (response.getBody() != null) {
             message = response.getBody().choices().getFirst().message().content();
@@ -48,9 +49,9 @@ public class OpenAiService {
     }
 
 
-    private List<ChatCompletionMessage> createChatCompletionMessageList(List<Message> allMessages, Exercise exercise) {
+    private List<ChatCompletionMessage> createChatCompletionMessageList(List<Message> allMessages, Exercise exercise, Conversation conversation) {
         List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
-        chatCompletionMessageList.add(createSystemExplanationPromptMessage(exercise));
+        chatCompletionMessageList.add(createSystemExplanationPromptMessage(exercise, conversation));
         allMessages.forEach(message ->
                 chatCompletionMessageList.add(new ChatCompletionMessage(message.getMessage(), decideRole(message.getConversationMember()))));
 
@@ -66,19 +67,19 @@ public class OpenAiService {
         };
     }
 
-    private ChatCompletionMessage createSystemExplanationPromptMessage(Exercise exercise) {
-        String message = createSystemExplanationString(exercise);
+    private ChatCompletionMessage createSystemExplanationPromptMessage(Exercise exercise, Conversation conversation) {
+        String message = createSystemExplanationString(exercise, conversation);
         return new ChatCompletionMessage(message, Role.SYSTEM);
     }
 
-    private String createSystemExplanationString(Exercise exercise) {
-        String introduction = "You are a conversation simulation tool. We are now trying to simulate specific or situational conversations in order to learn foreign languages. You are the simulated conversation partner and I am the learner. In order to give the conversation context and so that the conversation can be conducted by you, there are various tasks that I have to complete. ";
+    private String createSystemExplanationString(Exercise exercise, Conversation conversation) {
+        String introduction = "You are a conversation simulation tool. We are now trying to simulate specific or situational conversations in order to learn foreign languages. The language for this conversation is " + conversation.getLearner().getLearningLanguage() + "! You are the simulated conversation partner and I am the learner. In order to give the conversation context and so that the conversation can be conducted by you, there are various tasks that I have to complete. ";
         String szenario = "The scenario in the following conversation situation is as follows: " + exercise.getSzenario() + " ";
         //ggf noch nummerieren
         String tasks = "The tasks that I have to complete one after the other, are as follows: " + exercise.getTasks().stream().map(Task::getDescription).collect(Collectors.joining(", ")) + " ";
         String explanationRole = "you have to take on the opposite role or guide the other person and me through the conversation, so to speak";
         String roles = "Your role is " + exercise.getRoleSystem() + "and my Role is" + exercise.getRoleSystem();
-        String language = "The language of this conversation is english ";
+        String language = "The language of this conversation is " + conversation.getLearner().getLearningLanguage() + ". That means you and I talk in " + conversation.getLearner().getLearningLanguage();
         String conclusion = "Now start to take on your role and open the conversation ";
         return introduction + szenario + tasks + explanationRole + roles + language + conclusion;
     }
@@ -112,6 +113,4 @@ public class OpenAiService {
 
         return introduction + roles + taskDescription + taskClarification;
     }
-
-
 }

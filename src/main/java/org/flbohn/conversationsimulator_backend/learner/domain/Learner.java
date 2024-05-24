@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
+import org.flbohn.conversationsimulator_backend.conversation.types.Grade;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -23,15 +26,25 @@ public class Learner {
 
     private String learningLanguage;
 
+    private Integer totalPoints;
+
+    @ElementCollection
+    private List<Grade> allGrades;
+
     @OneToOne
     private Conversation conversation;
 
+
     public Learner() {
+        allGrades = new ArrayList<>();
+        totalPoints = 0;
     }
 
     public Learner(String name, String learningLanguage) {
         this.name = name;
         this.learningLanguage = learningLanguage;
+        allGrades = new ArrayList<>();
+        totalPoints = 0;
     }
 
     @Override

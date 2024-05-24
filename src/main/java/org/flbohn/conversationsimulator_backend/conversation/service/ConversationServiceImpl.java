@@ -48,7 +48,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         if (conversationOptional.isPresent()) {
             Conversation conversation = conversationOptional.get();
-            partnerMessage = new Message(openAiService.initConversation(conversation.getExercise()), ConversationMember.PARTNER);
+            partnerMessage = new Message(openAiService.initConversation(conversation.getExercise(), conversation), ConversationMember.PARTNER);
             partnerMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(partnerMessage);
         }
@@ -68,7 +68,7 @@ public class ConversationServiceImpl implements ConversationService {
             userMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(userMessage);
 
-            partnerMessage = new Message(openAiService.sendMessage(conversation.getMessagesOfConversation(), conversation.getExercise()), ConversationMember.PARTNER);
+            partnerMessage = new Message(openAiService.sendMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation), ConversationMember.PARTNER);
 
             calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
 
@@ -107,6 +107,11 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public Conversation getConversationById(Long conversationId) {
         return conversationRepository.findById(conversationId).orElseThrow();
+    }
+
+    @Override
+    public Conversation saveConversation(Conversation conversation) {
+        return conversationRepository.save(conversation);
     }
 
 

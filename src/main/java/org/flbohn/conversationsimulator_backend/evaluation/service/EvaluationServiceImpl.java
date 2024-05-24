@@ -67,6 +67,7 @@ public class EvaluationServiceImpl implements EvaluationService {
 
         Grade grade = assignGradeToConversation(conversation, allMistakeResponseDTOS);
         Integer points = assignPointsToConversation(conversation, grade);
+        conversationService.saveConversation(conversation);
 
         return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points);
     }
@@ -94,6 +95,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     private Grade assignGradeToConversation(Conversation conversation, List<MistakeResponseDTO> mistakeResponseDTOS) {
         Grade grade = calculateGrade(mistakeResponseDTOS);
         conversation.setGradeOfConversation(grade);
+        conversation.getLearner().getAllGrades().add(grade);
         return grade;
     }
 
@@ -112,6 +114,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     private int assignPointsToConversation(Conversation conversation, Grade grade) {
         int points = (int) (17 - 3 * grade.getNumericValue());
         conversation.setPointsOfConversation(points);
+        conversation.getLearner().setTotalPoints(conversation.getLearner().getTotalPoints() + points);
         return points;
     }
 

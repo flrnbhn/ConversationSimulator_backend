@@ -25,5 +25,7 @@ public interface ConversationService {
 
     Conversation getConversationById(Long conversationId);
 
+    Conversation saveConversation(Conversation conversation);
+
 
 }
