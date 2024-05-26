@@ -28,23 +28,29 @@ public class Learner {
 
     private Integer totalPoints;
 
+    private Float gradeAverage;
+
     @ElementCollection
     private List<Grade> allGrades;
 
-    @OneToOne
-    private Conversation conversation;
+    @OneToMany(mappedBy = "learner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Conversation> conversations;
 
 
     public Learner() {
         allGrades = new ArrayList<>();
+        conversations = new ArrayList<>();
         totalPoints = 0;
+        gradeAverage = 0.0F;
     }
 
     public Learner(String name, String learningLanguage) {
         this.name = name;
         this.learningLanguage = learningLanguage;
         allGrades = new ArrayList<>();
+        conversations = new ArrayList<>();
         totalPoints = 0;
+        gradeAverage = 0.0F;
     }
 
     @Override

@@ -43,7 +43,7 @@ public class Conversation {
     @OneToMany(mappedBy = "conversationOfTheMistake", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mistake> mistakes;
 
-    @OneToOne(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne
     private Learner learner;
 
     private Grade gradeOfConversation;

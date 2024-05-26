@@ -4,6 +4,8 @@ import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface LearnerService {
 
@@ -13,5 +15,9 @@ public interface LearnerService {
 
     Learner findLearnerById(long id);
 
+    List<Learner> findAllLearners();
+
     void setConversationForLearner(Conversation conversation);
+
+    List<Conversation> getAllConversationsFromLearner(long id);
 }

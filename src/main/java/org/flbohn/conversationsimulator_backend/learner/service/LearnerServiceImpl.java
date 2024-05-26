@@ -6,6 +6,7 @@ import org.flbohn.conversationsimulator_backend.learner.repository.LearnerReposi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -43,8 +44,19 @@ public class LearnerServiceImpl implements LearnerService {
         return learnerRepository.findById(id).orElseThrow();
     }
 
+    public List<Learner> findAllLearners() {
+        return learnerRepository.findAll();
+    }
+
     @Override
     public void setConversationForLearner(Conversation conversation) {
-        conversation.getLearner().setConversation(conversation);
+        conversation.getLearner().getConversations().add(conversation);
     }
+
+    @Override
+    public List<Conversation> getAllConversationsFromLearner(long id) {
+        return learnerRepository.findById(id).orElseThrow().getConversations();
+    }
+
+
 }

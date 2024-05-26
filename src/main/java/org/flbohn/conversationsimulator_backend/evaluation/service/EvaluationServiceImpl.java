@@ -9,6 +9,7 @@ import org.flbohn.conversationsimulator_backend.evaluation.domain.Mistake;
 import org.flbohn.conversationsimulator_backend.evaluation.dto.EvaluationResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.dto.MistakeResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.repository.MistakeRepository;
+import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
 import org.flbohn.conversationsimulator_backend.llmservices.LanguageCheckService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +97,21 @@ public class EvaluationServiceImpl implements EvaluationService {
         Grade grade = calculateGrade(mistakeResponseDTOS);
         conversation.setGradeOfConversation(grade);
         conversation.getLearner().getAllGrades().add(grade);
+        conversation.getLearner().setGradeAverage(calcGradeAverage(conversation.getLearner()));
         return grade;
+    }
+
+    private float calcGradeAverage(Learner learner) {
+        List<Grade> allGrades = learner.getAllGrades();
+        if (allGrades.isEmpty()) {
+            return 0.0F;
+        }
+        float gradeAddition = 0.0F;
+        for (Grade grade : allGrades) {
+            gradeAddition += (float) grade.getNumericValue();
+        }
+
+        return gradeAddition / allGrades.size();
     }
 
     private Grade calculateGrade(List<MistakeResponseDTO> mistakeResponseDTOS) {
