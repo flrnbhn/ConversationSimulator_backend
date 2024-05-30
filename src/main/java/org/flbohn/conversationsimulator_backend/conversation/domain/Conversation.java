@@ -50,6 +50,17 @@ public class Conversation {
 
     private Integer pointsOfConversation;
 
+    @Column(length = 3000)
+    private String szenario;
+
+    private String roleUser;
+
+    private String roleSystem;
+
+    private boolean isHighscoreConversation;
+
+    private String AiEvaluation;
+
     public Conversation(Date conversationStartDate) {
         this.conversationStartDate = conversationStartDate;
         messagesOfConversation = new ArrayList<>();
@@ -58,6 +69,10 @@ public class Conversation {
         conversationStatus = ConversationStatus.NOT_STARTED;
         gradeOfConversation = Grade.UNRATED;
         pointsOfConversation = 0;
+        szenario = "";
+        isHighscoreConversation = false;
+        roleSystem = "";
+        roleUser = "";
     }
 
     public Conversation() {
@@ -67,6 +82,10 @@ public class Conversation {
         conversationStatus = ConversationStatus.NOT_STARTED;
         gradeOfConversation = Grade.UNRATED;
         pointsOfConversation = 0;
+        szenario = "";
+        isHighscoreConversation = false;
+        roleSystem = "";
+        roleUser = "";
     }
 
     @Override

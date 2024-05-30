@@ -15,7 +15,7 @@ public interface ConversationService {
 
     Message createMessage(String message, ConversationMember conversationMember, Long conversationId);
 
-    Conversation createConversation(Date conversationStartDate, Long conversationId, Long learnerId);
+    Conversation createConversation(Date conversationStartDate, Long exerciseId, Long learnerId);
 
     Message initConversation(Long conversationId);
 
@@ -27,5 +27,10 @@ public interface ConversationService {
 
     Conversation saveConversation(Conversation conversation);
 
+    Conversation createHighScoreConversation(Date conversationStartDate, Long learnerId);
+
+    List<Conversation> getAllConversations();
+
+    void deleteConversation(Long conversationId);
 
 }

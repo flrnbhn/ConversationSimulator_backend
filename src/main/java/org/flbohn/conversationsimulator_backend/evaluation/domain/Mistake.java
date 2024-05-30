@@ -21,7 +21,7 @@ public class Mistake {
     @Version
     private long version;
 
-    @Column(length = 1000)
+    @Column(length = 3000)
     private String message;
 
     private String shortMessage;
@@ -33,7 +33,7 @@ public class Mistake {
 
     private int length;
 
-    @Column(length = 1000)
+    @Column(length = 3000)
     private String sentence;
 
     @ManyToOne

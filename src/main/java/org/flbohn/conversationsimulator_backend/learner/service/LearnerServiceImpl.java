@@ -1,7 +1,9 @@
 package org.flbohn.conversationsimulator_backend.learner.service;
 
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
+import org.flbohn.conversationsimulator_backend.conversation.repository.ConversationRepository;
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
+import org.flbohn.conversationsimulator_backend.learner.dto.HighScoreLearnersResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.repository.LearnerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +15,12 @@ import java.util.Optional;
 public class LearnerServiceImpl implements LearnerService {
 
     private final LearnerRepository learnerRepository;
+    private final ConversationRepository conversationRepository;
 
     @Autowired
-    public LearnerServiceImpl(LearnerRepository learnerRepository) {
+    public LearnerServiceImpl(LearnerRepository learnerRepository, ConversationRepository conversationRepository) {
         this.learnerRepository = learnerRepository;
+        this.conversationRepository = conversationRepository;
     }
 
     @Override
@@ -55,8 +59,18 @@ public class LearnerServiceImpl implements LearnerService {
 
     @Override
     public List<Conversation> getAllConversationsFromLearner(long id) {
-        return learnerRepository.findById(id).orElseThrow().getConversations();
+        return learnerRepository.findById(id).orElseThrow().getConversations().stream().filter(conversation -> !conversation.isHighscoreConversation()).toList();
     }
+
+    @Override
+    public List<HighScoreLearnersResponseDTO> getAllHighscores() {
+        List<Conversation> allConversations = conversationRepository.findAll();
+        return allConversations.stream().
+                filter(Conversation::isHighscoreConversation).
+                map(HighScoreLearnersResponseDTO::from).
+                toList();
+    }
+
 
 
 }

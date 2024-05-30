@@ -39,4 +39,10 @@ public class EvaluationController {
     public ResponseEntity<EvaluationResponseDTO> postNewLanguageCheckForConversation(@PathVariable Long conversationId) {
         return new ResponseEntity<>(evaluationService.receiveMistakesByConversation(conversationId), HttpStatus.OK);
     }
+
+    @Operation(summary = "Check Conversation about mistakes in Highscore-Game")
+    @PostMapping("/highscore/{conversationId}")
+    public ResponseEntity<List<MistakeResponseDTO>> postNewLanguageCheckForConversationInHighscoreGame(@PathVariable Long conversationId) {
+        return new ResponseEntity<>(evaluationService.receiveMistakesByConversationInHighscoreGame(conversationId), HttpStatus.OK);
+    }
 }

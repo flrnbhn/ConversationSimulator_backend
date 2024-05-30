@@ -7,6 +7,7 @@ import java.util.List;
 public record EvaluationResponseDTO(
         List<MistakeResponseDTO> mistakeResponseDTOS,
         Grade grade,
-        Integer points
+        Integer points,
+        String evaluation
 ) {
 }

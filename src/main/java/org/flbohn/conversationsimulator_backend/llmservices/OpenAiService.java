@@ -113,4 +113,90 @@ public class OpenAiService {
 
         return introduction + roles + taskDescription + taskClarification;
     }
+
+    public String evaluateConversation(List<Message> allMessages, Exercise exercise) {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        chatCompletionMessageList.add(new ChatCompletionMessage(createSystemExplanationStringForConversationEvaluation(exercise), Role.SYSTEM));
+
+        String conversationString = allMessages.stream()
+                .map(message -> message.getConversationMember() + ": " + message.getMessage())
+                .collect(Collectors.joining("\n"));
+
+        chatCompletionMessageList.add(new ChatCompletionMessage(conversationString, Role.USER));
+
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
+    }
+
+    private String createSystemExplanationStringForConversationEvaluation(Exercise exercise) {
+        String introduction = " You are a conversation analysis tool that evaluates simulated conversations.  Analyze the following conversation regarding: " + exercise.getSzenario() + ". ";
+        String roles = "The conversation involves a " + exercise.getRoleSystem() + " and a " + exercise.getRoleUser() + ". ";
+        String classification = "The conversation trained " + exercise.getRoleUser() + "conversational skills ";
+        String evaluation = "Your task is to find out what " + exercise.getRoleSystem() + "could have done better in the conversation";
+        String criteria = "The following evaluation criteria apply: Vocabulary in conversation, relevance of content, cultural understanding";
+        String task = "Give a brief description of the criteria, what was not good and what could have been done better";
+
+        return introduction + roles + classification + evaluation + criteria + task;
+    }
+
+
+    public String initHighscoreConversation(Conversation conversation) {
+        return sendHighscoreMessage(new ArrayList<>(), conversation);
+    }
+
+    public String sendHighscoreMessage(List<Message> allMessages, Conversation conversation) {
+        List<ChatCompletionMessage> chatCompletionMessageList = createHighscoreChatCompletionMessageList(allMessages, conversation);
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
+    }
+
+    private List<ChatCompletionMessage> createHighscoreChatCompletionMessageList(List<Message> allMessages, Conversation conversation) {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        chatCompletionMessageList.add(createHighscoreSystemExplanationPromptMessage(conversation));
+        allMessages.forEach(message ->
+                chatCompletionMessageList.add(new ChatCompletionMessage(message.getMessage(), decideRole(message.getConversationMember()))));
+
+        return chatCompletionMessageList;
+    }
+
+    private ChatCompletionMessage createHighscoreSystemExplanationPromptMessage(Conversation conversation) {
+        String message = createHighscoreSystemExplanationString(conversation);
+        return new ChatCompletionMessage(message, Role.SYSTEM);
+    }
+
+    private String createHighscoreSystemExplanationString(Conversation conversation) {
+        String introduction = "You are a conversation simulation tool. ";
+        String task = "You will now talk to me and we have a conversation. You will be the leading part, guiding the conversation, so to speak, and setting the topics so that a nice conversation comes out of it. The conversation is endless. This means that when a topic is finished, suggest a new one. ";
+        String length = " Keep it short, the length of your message should not exceed 100 words";
+        String szenario = "The scenario of the conversation is as follows: " + conversation.getSzenario();
+        String roles = " Your role is " + conversation.getRoleSystem() + "and my Role is" + conversation.getRoleSystem();
+        String language = "The language of this conversation is " + conversation.getLearner().getLearningLanguage() + ". That means you and I talk in " + conversation.getLearner().getLearningLanguage();
+        return introduction + task + szenario + roles + language + length;
+    }
+
+    public String createSzenario() {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        String message = "Think of a conversation scenario in which long conversations can be held. Describe the scenario very briefly and say who the two conversation partners are.";
+        ChatCompletionMessage chatCompletionMessage = new ChatCompletionMessage(message, Role.ASSISTANT);
+        chatCompletionMessageList.add(chatCompletionMessage);
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
+    }
+
+    public String[] decideRole(String conversationSzenario) {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        String szenario = "I have the following conversation scenario in which 2 conversation partners are also explained. Scenario: " + conversationSzenario;
+        String decide = " Decide randomly which of the two conversation partners is the user and which is the system. Only return exactly one answer in this format: [user: conversation-partner1, system:  conversation-partner2]";
+        ChatCompletionMessage chatCompletionMessage = new ChatCompletionMessage(szenario + decide, Role.ASSISTANT);
+        chatCompletionMessageList.add(chatCompletionMessage);
+        String answer = callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
+        return extractOpenAiString(answer);
+    }
+
+    public String[] extractOpenAiString(String answer) {
+        String cleanedInput = answer.substring(1, answer.length() - 1);
+        String[] parts = cleanedInput.split(", ");
+        String[] names = new String[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            names[i] = parts[i].split(": ")[1];
+        }
+        return names;
+    }
 }

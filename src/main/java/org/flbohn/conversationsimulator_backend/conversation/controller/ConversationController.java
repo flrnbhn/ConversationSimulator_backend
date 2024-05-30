@@ -3,6 +3,7 @@ package org.flbohn.conversationsimulator_backend.conversation.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.ConversationRequestDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.ConversationStatusRequestDTO;
+import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.HighScoreConversationResponseDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.message.MessageRequestDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.message.MessageResponseDTO;
 import org.flbohn.conversationsimulator_backend.conversation.service.ConversationService;
@@ -72,5 +73,18 @@ public class ConversationController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Operation(summary = "Create new Highscore conversation")
+    @PostMapping("/highscore")
+    public ResponseEntity<HighScoreConversationResponseDTO> postHighscoreConversation(@RequestBody ConversationRequestDTO conversationRequestDTO) {
+        return new ResponseEntity<>(HighScoreConversationResponseDTO.from(conversationService.createHighScoreConversation(conversationRequestDTO.conversationStartDate(), conversationRequestDTO.learnerId())), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Delete Conversation")
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(@PathVariable Long conversationId) {
+        conversationService.deleteConversation(conversationId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

@@ -15,4 +15,7 @@ public interface EvaluationService {
 
     EvaluationResponseDTO receiveMistakesByConversation(Long conversationId);
 
+    List<MistakeResponseDTO> receiveMistakesByConversationInHighscoreGame(Long conversationId);
+
+
 }

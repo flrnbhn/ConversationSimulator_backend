@@ -22,7 +22,7 @@ public class Message {
     @Version
     private long version;
 
-    @Column(length = 1000)
+    @Column(length = 3000)
     private String message;
 
     private ConversationMember conversationMember;

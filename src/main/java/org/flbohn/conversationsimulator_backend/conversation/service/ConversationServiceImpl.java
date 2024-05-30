@@ -48,7 +48,12 @@ public class ConversationServiceImpl implements ConversationService {
 
         if (conversationOptional.isPresent()) {
             Conversation conversation = conversationOptional.get();
-            partnerMessage = new Message(openAiService.initConversation(conversation.getExercise(), conversation), ConversationMember.PARTNER);
+            partnerMessage = new Message(
+                    conversation.isHighscoreConversation()
+                            ? openAiService.initHighscoreConversation(conversation)
+                            : openAiService.initConversation(conversation.getExercise(), conversation),
+                    ConversationMember.PARTNER
+            );
             partnerMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(partnerMessage);
         }
@@ -68,9 +73,16 @@ public class ConversationServiceImpl implements ConversationService {
             userMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(userMessage);
 
-            partnerMessage = new Message(openAiService.sendMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation), ConversationMember.PARTNER);
+            partnerMessage = new Message(
+                    conversation.isHighscoreConversation()
+                            ? openAiService.sendHighscoreMessage(conversation.getMessagesOfConversation(), conversation)
+                            : openAiService.sendMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation),
+                    ConversationMember.PARTNER
+            );
 
-            calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
+            if (!conversation.isHighscoreConversation()) {
+                calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
+            }
 
             partnerMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(partnerMessage);
@@ -132,22 +144,6 @@ public class ConversationServiceImpl implements ConversationService {
                 }));
 
         return conversation.getCompletedTasks();
-
-        /*
-        gpt payen
-        nochmal paarmal testen, evaluieren, schauen ob string anders definiert werden muss
-
-        hier komma seperierte liste auf task description mappen
-        die der conversation hiinzufügen die vorhnaden sind also erledigt sind
-        task zurück geben
-        im conroller zu dto verwandeln
-        im frontend alle anzeigen
-        im frontend mit excercise.tasks vergleichen
-        OOODer tasks im backend mit excercise tasks vergleichen und ganze liste mit marker zurück schicken.  <- bessere lösung
-
-        wenn alle dinger checked, dann seite wechseln -> call geschafft
-        frontend soll nachrichten zählen, wenn nachrichten zu viele, dann call übung nicht geschafft -> exercise limit mit in entität geben
-         */
     }
 
 
@@ -158,6 +154,31 @@ public class ConversationServiceImpl implements ConversationService {
         conversation.setLearner(learnerService.findLearnerById(learnerId));
         learnerService.setConversationForLearner(conversation);
         exerciseService.setConversationInExercise(exerciseId, conversation);
+        conversation.setRoleSystem(conversation.getExercise().getRoleSystem());
+        conversation.setRoleUser(conversation.getExercise().getRoleUser());
         return conversationRepository.save(conversation);
     }
+
+    @Override
+    public Conversation createHighScoreConversation(Date conversationStartDate, Long learnerId) {
+        Conversation conversation = new Conversation(conversationStartDate);
+        conversation.setLearner(learnerService.findLearnerById(learnerId));
+        conversation.setSzenario(openAiService.createSzenario());
+        String[] roles = openAiService.decideRole(conversation.getSzenario());
+        conversation.setRoleUser(roles[0]);
+        conversation.setRoleSystem(roles[1]);
+        conversation.setHighscoreConversation(true);
+        learnerService.setConversationForLearner(conversation);
+        return conversationRepository.save(conversation);
+    }
+
+    @Override
+    public List<Conversation> getAllConversations() {
+        return conversationRepository.findAll();
+    }
+
+    public void deleteConversation(Long conversationId) {
+        conversationRepository.deleteById(conversationId);
+    }
+
 }

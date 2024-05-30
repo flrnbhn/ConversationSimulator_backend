@@ -11,6 +11,7 @@ import org.flbohn.conversationsimulator_backend.evaluation.dto.MistakeResponseDT
 import org.flbohn.conversationsimulator_backend.evaluation.repository.MistakeRepository;
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
 import org.flbohn.conversationsimulator_backend.llmservices.LanguageCheckService;
+import org.flbohn.conversationsimulator_backend.llmservices.OpenAiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,15 @@ public class EvaluationServiceImpl implements EvaluationService {
 
     private final MistakeRepository mistakeRepository;
 
+    private final OpenAiService openAiService;
+
 
     @Autowired
-    public EvaluationServiceImpl(LanguageCheckService languageCheckService, ConversationService conversationService, MistakeRepository mistakeRepository) {
+    public EvaluationServiceImpl(LanguageCheckService languageCheckService, ConversationService conversationService, MistakeRepository mistakeRepository, OpenAiService openAiService) {
         this.languageCheckService = languageCheckService;
         this.conversationService = conversationService;
         this.mistakeRepository = mistakeRepository;
+        this.openAiService = openAiService;
     }
 
     @Override
@@ -65,16 +69,28 @@ public class EvaluationServiceImpl implements EvaluationService {
             persistMistakesInConversationAndMessage(currentMistakeResponseDTOS, conversation, message);
             allMistakeResponseDTOS.addAll(currentMistakeResponseDTOS);
         }
+        String evaluation = openAiService.evaluateConversation(conversation.getMessagesOfConversation(), conversation.getExercise());
 
-        Grade grade = assignGradeToConversation(conversation, allMistakeResponseDTOS);
+        Grade grade = assignGradeToConversation(conversation, allMistakeResponseDTOS, messages);
         Integer points = assignPointsToConversation(conversation, grade);
         conversationService.saveConversation(conversation);
 
-        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points);
+        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points, evaluation);
+    }
+
+
+    @Override
+    public List<MistakeResponseDTO> receiveMistakesByConversationInHighscoreGame(Long conversationId) {
+        Conversation conversation = conversationService.getConversationById(conversationId);
+        Message message = conversation.getMessagesOfConversation().get(conversation.getMessagesOfConversation().size() - 2);
+        List<MistakeResponseDTO> mistakeResponseDTOs = languageCheckService.checkConversation(message.getMessage()).block();
+        persistMistakesInConversationAndMessage(mistakeResponseDTOs, conversation, message);
+
+        return mistakeResponseDTOs;
     }
 
     private void persistMistakesInConversationAndMessage(List<MistakeResponseDTO> mistakeResponseDTOS, Conversation conversation, Message message) {
-        if (mistakeResponseDTOS != null) {
+        if (mistakeResponseDTOS != null && !mistakeResponseDTOS.isEmpty()) {
             List<Mistake> mistakes = mistakeResponseDTOS.stream().map(mistakeResponseDTO ->
                             new Mistake(mistakeResponseDTO.message(),
                                     mistakeResponseDTO.shortMessage(),
@@ -93,8 +109,8 @@ public class EvaluationServiceImpl implements EvaluationService {
         }
     }
 
-    private Grade assignGradeToConversation(Conversation conversation, List<MistakeResponseDTO> mistakeResponseDTOS) {
-        Grade grade = calculateGrade(mistakeResponseDTOS);
+    private Grade assignGradeToConversation(Conversation conversation, List<MistakeResponseDTO> mistakeResponseDTOS, List<Message> messages) {
+        Grade grade = calculateGrade(mistakeResponseDTOS, messages);
         conversation.setGradeOfConversation(grade);
         conversation.getLearner().getAllGrades().add(grade);
         conversation.getLearner().setGradeAverage(calcGradeAverage(conversation.getLearner()));
@@ -114,16 +130,28 @@ public class EvaluationServiceImpl implements EvaluationService {
         return gradeAddition / allGrades.size();
     }
 
-    private Grade calculateGrade(List<MistakeResponseDTO> mistakeResponseDTOS) {
+    private Grade calculateGrade(List<MistakeResponseDTO> mistakeResponseDTOS, List<Message> messages) {
         int mistakeCount = mistakeResponseDTOS.size();
-        return switch (mistakeCount) {
-            case 0, 1 -> Grade.ONE;
-            case 2, 3, 4 -> Grade.TWO;
-            case 5, 6, 7 -> Grade.THREE;
-            case 8, 9, 10 -> Grade.FOUR;
-            case 11, 12, 13 -> Grade.FIVE;
-            default -> Grade.SIX;
-        };
+        int wordCount = countWordsInUserMessages(messages.stream().map(Message::getMessage).toList());
+        if (mistakeCount == 0) {
+            return Grade.ONE;
+        }
+
+        double failureRate = ((double) mistakeCount / wordCount) * 100;
+
+        if (failureRate <= 1) {
+            return Grade.ONE;
+        } else if (failureRate <= 3) {
+            return Grade.TWO;
+        } else if (failureRate <= 6) {
+            return Grade.THREE;
+        } else if (failureRate <= 9) {
+            return Grade.FOUR;
+        } else if (failureRate <= 12) {
+            return Grade.FIVE;
+        } else {
+            return Grade.SIX;
+        }
     }
 
     private int assignPointsToConversation(Conversation conversation, Grade grade) {
@@ -131,6 +159,19 @@ public class EvaluationServiceImpl implements EvaluationService {
         conversation.setPointsOfConversation(points);
         conversation.getLearner().setTotalPoints(conversation.getLearner().getTotalPoints() + points);
         return points;
+    }
+
+    private Integer countWordsInUserMessages(List<String> messages) {
+        int count = 0;
+        for (String message : messages) {
+            count += countWordsInString(message);
+        }
+        return count;
+    }
+
+    private Integer countWordsInString(String text) {
+        String[] words = text.split("\\s+|\\n+");
+        return words.length;
     }
 
 }

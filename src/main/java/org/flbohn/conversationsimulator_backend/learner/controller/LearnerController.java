@@ -5,6 +5,7 @@ import org.flbohn.conversationsimulator_backend.conversation.controller.Conversa
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.ConversationResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
+import org.flbohn.conversationsimulator_backend.learner.dto.HighScoreLearnersResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.dto.LearnerLoginRequestDTO;
 import org.flbohn.conversationsimulator_backend.learner.dto.LearnerRegistrateRequestDTO;
 import org.flbohn.conversationsimulator_backend.learner.dto.LearnerResponseDTO;
@@ -74,5 +75,11 @@ public class LearnerController {
         return new ResponseEntity<>(conversations.stream()
                 .map(ConversationResponseDTO::from)
                 .toList(), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Get all HighScores from all Learners")
+    @GetMapping("/highscore")
+    public ResponseEntity<List<HighScoreLearnersResponseDTO>> getAllHighscoresFromAllLearners() {
+        return new ResponseEntity<>(learnerService.getAllHighscores(), HttpStatus.OK);
     }
 }
