@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 import org.flbohn.conversationsimulator_backend.conversation.types.Grade;
+import org.flbohn.conversationsimulator_backend.learner.types.LearningLanguage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public class Learner {
 
     private String name;
 
-    private String learningLanguage;
+    private LearningLanguage learningLanguage;
 
     private Integer totalPoints;
 
@@ -36,7 +37,6 @@ public class Learner {
     @OneToMany(mappedBy = "learner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Conversation> conversations;
 
-
     public Learner() {
         allGrades = new ArrayList<>();
         conversations = new ArrayList<>();
@@ -44,7 +44,7 @@ public class Learner {
         gradeAverage = 0.0F;
     }
 
-    public Learner(String name, String learningLanguage) {
+    public Learner(String name, LearningLanguage learningLanguage) {
         this.name = name;
         this.learningLanguage = learningLanguage;
         allGrades = new ArrayList<>();

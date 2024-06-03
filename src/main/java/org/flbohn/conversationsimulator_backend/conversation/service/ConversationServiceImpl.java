@@ -11,6 +11,8 @@ import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
 import org.flbohn.conversationsimulator_backend.exercise.service.ExerciseService;
 import org.flbohn.conversationsimulator_backend.learner.service.LearnerService;
 import org.flbohn.conversationsimulator_backend.llmservices.OpenAiService;
+import org.flbohn.conversationsimulator_backend.llmservices.Speech2TextService;
+import org.flbohn.conversationsimulator_backend.llmservices.Text2SpeechService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +34,20 @@ public class ConversationServiceImpl implements ConversationService {
 
     private final LearnerService learnerService;
 
+    private final Text2SpeechService text2SpeechService;
+
+    private final Speech2TextService speech2TextService;
+
+
     @Autowired
-    public ConversationServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, ExerciseService exerciseService, OpenAiService openAiService, LearnerService learnerService) {
+    public ConversationServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, ExerciseService exerciseService, OpenAiService openAiService, LearnerService learnerService, Text2SpeechService text2SpeechService, Speech2TextService speech2TextService) {
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
         this.exerciseService = exerciseService;
         this.openAiService = openAiService;
         this.learnerService = learnerService;
+        this.text2SpeechService = text2SpeechService;
+        this.speech2TextService = speech2TextService;
     }
 
     @Override
@@ -64,7 +73,9 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public Message createMessage(String messageString, ConversationMember conversationMember, Long conversationId) throws NoSuchElementException {
-        final Message userMessage = new Message(messageString, conversationMember);
+        Message userMessage;
+        userMessage = new Message(messageString, conversationMember);
+
         Message partnerMessage = null;
         Optional<Conversation> conversationOptional = conversationRepository.findById(conversationId);
 
@@ -180,5 +191,35 @@ public class ConversationServiceImpl implements ConversationService {
     public void deleteConversation(Long conversationId) {
         conversationRepository.deleteById(conversationId);
     }
+
+    @Override
+    public String synthesizeMessageFromConversation(Long conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
+        String lastMessage = conversation.getMessagesOfConversation().stream()
+                .filter(message -> message.getConversationMember() == ConversationMember.PARTNER)
+                .toList()
+                .getLast()
+                .getMessage();
+
+        if (conversation.getGender().isEmpty()) {
+            conversation.setGender(openAiService.decideGenderByName(conversation.getRoleSystem()));
+            conversationRepository.save(conversation);
+        }
+        byte[] audioBytes = text2SpeechService.synthesizeSpeech(lastMessage, conversation.getLearner().getLearningLanguage().getLanguageValue(), conversation.getGender());
+
+        return Base64.getEncoder().encodeToString(audioBytes);
+    }
+
+    public String transcribeMessage(String base64EncodedMessage) {
+        return speech2TextService.transcription(base64EncodedMessage);
+    }
+
+    @Override
+    public String translateMessage(String message, Long conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
+        conversation.setTranslationCount(conversation.getTranslationCount() + 1);
+        return openAiService.translateMessage(message);
+    }
+
 
 }

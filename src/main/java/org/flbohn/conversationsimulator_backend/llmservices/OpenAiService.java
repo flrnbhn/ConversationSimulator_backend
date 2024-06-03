@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class OpenAiService {
 
-    final private OpenAiApi openAiApi;
+    private final OpenAiApi openAiApi;
 
     public OpenAiService() {
         openAiApi = new OpenAiApi(System.getenv("SPRING_AI_OPENAI_API_KEY"));
@@ -73,13 +73,13 @@ public class OpenAiService {
     }
 
     private String createSystemExplanationString(Exercise exercise, Conversation conversation) {
-        String introduction = "You are a conversation simulation tool. We are now trying to simulate specific or situational conversations in order to learn foreign languages. The language for this conversation is " + conversation.getLearner().getLearningLanguage() + "! You are the simulated conversation partner and I am the learner. In order to give the conversation context and so that the conversation can be conducted by you, there are various tasks that I have to complete. ";
+        String introduction = "You are a conversation simulation tool. We are now trying to simulate specific or situational conversations in order to learn foreign languages. The language for this conversation is " + conversation.getLearner().getLearningLanguage().getLanguageValue() + "! You are the simulated conversation partner and I am the learner. In order to give the conversation context and so that the conversation can be conducted by you, there are various tasks that I have to complete. ";
         String szenario = "The scenario in the following conversation situation is as follows: " + exercise.getSzenario() + " ";
         //ggf noch nummerieren
         String tasks = "The tasks that I have to complete one after the other, are as follows: " + exercise.getTasks().stream().map(Task::getDescription).collect(Collectors.joining(", ")) + " ";
         String explanationRole = "you have to take on the opposite role or guide the other person and me through the conversation, so to speak";
         String roles = "Your role is " + exercise.getRoleSystem() + "and my Role is" + exercise.getRoleSystem();
-        String language = "The language of this conversation is " + conversation.getLearner().getLearningLanguage() + ". That means you and I talk in " + conversation.getLearner().getLearningLanguage();
+        String language = "The language of this conversation is " + conversation.getLearner().getLearningLanguage() + ". That means you and I talk in " + conversation.getLearner().getLearningLanguage().getLanguageValue();
         String conclusion = "Now start to take on your role and open the conversation ";
         return introduction + szenario + tasks + explanationRole + roles + language + conclusion;
     }
@@ -138,6 +138,29 @@ public class OpenAiService {
         return introduction + roles + classification + evaluation + criteria + task;
     }
 
+    public String decideGenderByName(String name) {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        chatCompletionMessageList.add(new ChatCompletionMessage(createSystemExplanationStringForGenderDecision(name), Role.USER));
+
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
+    }
+
+    private String createSystemExplanationStringForGenderDecision(String name) {
+        String explanation = "Please tell me the gender of the name " + name + " Only give me one of these words as an answer, in this exact spelling : male, female. If none of the genders apply then decide at random.";
+        return explanation;
+    }
+
+    public String translateMessage(String message) {
+        List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
+        chatCompletionMessageList.add(new ChatCompletionMessage(createSystemExplanationStringForMessageTranslation(), Role.SYSTEM));
+        chatCompletionMessageList.add(new ChatCompletionMessage(message, Role.USER));
+        return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
+    }
+
+    private String createSystemExplanationStringForMessageTranslation() {
+        return "You are a translator in German. Translate only the message I send you into German";
+    }
+
 
     public String initHighscoreConversation(Conversation conversation) {
         return sendHighscoreMessage(new ArrayList<>(), conversation);
@@ -168,7 +191,7 @@ public class OpenAiService {
         String length = " Keep it short, the length of your message should not exceed 100 words";
         String szenario = "The scenario of the conversation is as follows: " + conversation.getSzenario();
         String roles = " Your role is " + conversation.getRoleSystem() + "and my Role is" + conversation.getRoleSystem();
-        String language = "The language of this conversation is " + conversation.getLearner().getLearningLanguage() + ". That means you and I talk in " + conversation.getLearner().getLearningLanguage();
+        String language = "The language of this conversation is " + conversation.getLearner().getLearningLanguage() + ". That means you and I talk in " + conversation.getLearner().getLearningLanguage().getLanguageValue();
         return introduction + task + szenario + roles + language + length;
     }
 

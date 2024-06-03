@@ -5,7 +5,8 @@ import org.flbohn.conversationsimulator_backend.conversation.types.ConversationM
 public record MessageRequestDTO(
         String message,
         ConversationMember conversationMember,
-        Long conversationID
+        Long conversationID,
+        boolean isAudioMessage
 ) {
 
 }

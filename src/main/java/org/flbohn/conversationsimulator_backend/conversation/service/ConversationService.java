@@ -33,4 +33,10 @@ public interface ConversationService {
 
     void deleteConversation(Long conversationId);
 
+    String synthesizeMessageFromConversation(Long conversationId);
+
+    String transcribeMessage(String base64EncodedMessage);
+
+    String translateMessage(String message, Long conversationId);
+
 }

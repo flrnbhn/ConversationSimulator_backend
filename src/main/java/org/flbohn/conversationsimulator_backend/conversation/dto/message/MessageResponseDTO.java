@@ -6,15 +6,17 @@ import org.flbohn.conversationsimulator_backend.conversation.types.ConversationM
 public record MessageResponseDTO(
         long conversationId,
         String message,
-        ConversationMember conversationMember
+        ConversationMember conversationMember,
+        String synthesizedMessage
         //long conversationOfMessageId
 ) {
 
-    public static MessageResponseDTO from(Message message) {
+    public static MessageResponseDTO from(Message message, String synthesizedMessage) {
         return new MessageResponseDTO(
                 message.getId(),
                 message.getMessage(),
-                message.getConversationMember()
+                message.getConversationMember(),
+                synthesizedMessage
                 // message.getConversationOfMessage().getId()
         );
     }

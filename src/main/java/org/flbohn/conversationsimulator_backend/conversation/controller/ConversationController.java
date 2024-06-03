@@ -6,11 +6,13 @@ import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.Co
 import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.HighScoreConversationResponseDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.message.MessageRequestDTO;
 import org.flbohn.conversationsimulator_backend.conversation.dto.message.MessageResponseDTO;
+import org.flbohn.conversationsimulator_backend.conversation.dto.transcription.TranscriptionRequestDTO;
 import org.flbohn.conversationsimulator_backend.conversation.service.ConversationService;
 import org.flbohn.conversationsimulator_backend.exercise.dto.task.TaskResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +42,7 @@ public class ConversationController {
     @GetMapping("/init/{conversationId}")
     public ResponseEntity<MessageResponseDTO> initConversation(@PathVariable Long conversationId) {
         try {
-            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.initConversation(conversationId)), HttpStatus.OK);
+            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.initConversation(conversationId), conversationService.synthesizeMessageFromConversation(conversationId)), HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -50,7 +52,9 @@ public class ConversationController {
     @PostMapping("/newMessage")
     public ResponseEntity<MessageResponseDTO> postNewMessage(@RequestBody MessageRequestDTO message) {
         try {
-            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.createMessage(message.message(), message.conversationMember(), message.conversationID())), HttpStatus.OK);
+            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.createMessage(message.message(), message.conversationMember(), message.conversationID()),
+                    conversationService.synthesizeMessageFromConversation(message.conversationID())),
+                    HttpStatus.OK);
         } catch (NoSuchElementException e) {
             log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -86,5 +90,25 @@ public class ConversationController {
     public ResponseEntity<Void> deleteConversation(@PathVariable Long conversationId) {
         conversationService.deleteConversation(conversationId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/synthesize/{conversationId}")
+    public ResponseEntity<String> synthesize(@PathVariable Long conversationId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=output.mp3");
+        headers.add(HttpHeaders.CONTENT_TYPE, "audio/mpeg");
+        return new ResponseEntity<>(conversationService.synthesizeMessageFromConversation(conversationId), headers, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Transcribe Base64-Message")
+    @PostMapping("/transcribe")
+    public ResponseEntity<String> transcribe(@RequestBody TranscriptionRequestDTO message) {
+        return new ResponseEntity<>(conversationService.transcribeMessage(message.base64String()), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Transcribe Base64-Message")
+    @PostMapping("/translate/{conversationId}")
+    public ResponseEntity<String> translate(@RequestBody String message, @PathVariable Long conversationId) {
+        return new ResponseEntity<>(conversationService.translateMessage(message, conversationId), HttpStatus.OK);
     }
 }

@@ -5,6 +5,7 @@ import org.flbohn.conversationsimulator_backend.conversation.repository.Conversa
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
 import org.flbohn.conversationsimulator_backend.learner.dto.HighScoreLearnersResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.repository.LearnerRepository;
+import org.flbohn.conversationsimulator_backend.learner.types.LearningLanguage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class LearnerServiceImpl implements LearnerService {
     }
 
     @Override
-    public long registrateLearner(String name, String learningLanguage) {
+    public long registrateLearner(String name, LearningLanguage learningLanguage) {
         if (learnerRepository.findByName(name).isPresent()) {
             return -1;
         }

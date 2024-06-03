@@ -57,9 +57,13 @@ public class Conversation {
 
     private String roleSystem;
 
+    private String gender;
+
     private boolean isHighscoreConversation;
 
     private String AiEvaluation;
+
+    private Integer translationCount;
 
     public Conversation(Date conversationStartDate) {
         this.conversationStartDate = conversationStartDate;
@@ -73,6 +77,8 @@ public class Conversation {
         isHighscoreConversation = false;
         roleSystem = "";
         roleUser = "";
+        gender = "";
+        translationCount = 0;
     }
 
     public Conversation() {
@@ -86,6 +92,8 @@ public class Conversation {
         isHighscoreConversation = false;
         roleSystem = "";
         roleUser = "";
+        gender = "";
+        translationCount = 0;
     }
 
     @Override
