@@ -131,11 +131,11 @@ public class OpenAiService {
         String introduction = " You are a conversation analysis tool that evaluates simulated conversations.  Analyze the following conversation regarding: " + exercise.getSzenario() + ". ";
         String roles = "The conversation involves a " + exercise.getRoleSystem() + " and a " + exercise.getRoleUser() + ". ";
         String classification = "The conversation trained " + exercise.getRoleUser() + "conversational skills ";
-        String evaluation = "Your task is to find out what " + exercise.getRoleSystem() + "could have done better in the conversation";
-        String criteria = "The following evaluation criteria apply: Vocabulary in conversation, relevance of content, cultural understanding";
-        String task = "Give a brief description of the criteria, what was not good and what could have been done better";
-
-        return introduction + roles + classification + evaluation + criteria + task;
+        String evaluation = "Your task is to find out what " + exercise.getRoleUser() + "could have done better in the conversation";
+        String criteria = "The following evaluation criteria apply: Used Vocabulary in conversation, relevance of content, cultural understanding";
+        String task = "Give a very short (approx. 120 Words) description of the criteria, what was not good and what could have been done better";
+        String paragraph = "Separate the individual explanations of the criteria with a paragraph";
+        return introduction + roles + classification + evaluation + criteria + task + paragraph;
     }
 
     public String decideGenderByName(String name) {

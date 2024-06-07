@@ -10,6 +10,7 @@ import org.flbohn.conversationsimulator_backend.learner.dto.LearnerLoginRequestD
 import org.flbohn.conversationsimulator_backend.learner.dto.LearnerRegistrateRequestDTO;
 import org.flbohn.conversationsimulator_backend.learner.dto.LearnerResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.service.LearnerService;
+import org.flbohn.conversationsimulator_backend.learner.types.LearningLanguageDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,5 +82,12 @@ public class LearnerController {
     @GetMapping("/highscore")
     public ResponseEntity<List<HighScoreLearnersResponseDTO>> getAllHighscoresFromAllLearners() {
         return new ResponseEntity<>(learnerService.getAllHighscores(), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Change LearningLanguage of Learner")
+    @PostMapping("/language/{learnerId}")
+    public ResponseEntity<Void> postNewLearnerLanguage(@RequestBody LearningLanguageDTO learnerLanguage, @PathVariable long learnerId) {
+        learnerService.changeLearningLanguage(learnerId, learnerLanguage.learningLanguage());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

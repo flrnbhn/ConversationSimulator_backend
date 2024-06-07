@@ -72,6 +72,12 @@ public class LearnerServiceImpl implements LearnerService {
                 toList();
     }
 
+    @Override
+    public void changeLearningLanguage(long id, LearningLanguage learningLanguage) {
+        Learner learner = learnerRepository.findById(id).orElseThrow();
+        learner.setLearningLanguage(learningLanguage);
+        learnerRepository.save(learner);
+    }
 
 
 }

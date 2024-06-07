@@ -24,4 +24,7 @@ public interface LearnerService {
     List<Conversation> getAllConversationsFromLearner(long id);
 
     List<HighScoreLearnersResponseDTO> getAllHighscores();
+
+    void changeLearningLanguage(long id, LearningLanguage learningLanguage);
+
 }
