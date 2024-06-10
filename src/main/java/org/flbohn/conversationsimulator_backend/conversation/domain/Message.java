@@ -33,10 +33,19 @@ public class Message {
     @OneToMany(mappedBy = "messageOfTheMistake", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mistake> mistakes;
 
+    private boolean isVoiceMessage = false;
+
     public Message(String message, ConversationMember conversationMember) {
         this.conversationMember = conversationMember;
         this.message = message;
         this.mistakes = new ArrayList<>();
+    }
+
+    public Message(String message, ConversationMember conversationMember, boolean isVoiceMessage) {
+        this.conversationMember = conversationMember;
+        this.message = message;
+        this.mistakes = new ArrayList<>();
+        this.isVoiceMessage = isVoiceMessage;
     }
 
     public Message() {

@@ -8,6 +8,7 @@ public record EvaluationResponseDTO(
         List<MistakeResponseDTO> mistakeResponseDTOS,
         Grade grade,
         Integer points,
-        String evaluation
+        String evaluation,
+        Integer translationCount
 ) {
 }

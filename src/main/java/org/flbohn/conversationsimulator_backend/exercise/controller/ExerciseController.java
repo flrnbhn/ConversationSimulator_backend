@@ -58,4 +58,11 @@ public class ExerciseController {
 
         return new ResponseEntity<>(exerciseId, HttpStatus.OK);
     }
+
+    @Operation(summary = "Delete Exercise")
+    @DeleteMapping("/{exerciseId}")
+    public ResponseEntity<Void> deleteExercise(@PathVariable Long exerciseId) {
+        exerciseService.deleteExercise(exerciseId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

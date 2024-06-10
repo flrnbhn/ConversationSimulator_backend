@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 public interface ConversationService {
 
-    Message createMessage(String message, ConversationMember conversationMember, Long conversationId);
+    Message createMessage(String message, ConversationMember conversationMember, Long conversationId, boolean isAudioMessage);
 
     Conversation createConversation(Date conversationStartDate, Long exerciseId, Long learnerId);
 

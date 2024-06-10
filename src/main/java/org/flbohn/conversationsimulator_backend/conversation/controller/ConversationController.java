@@ -52,7 +52,7 @@ public class ConversationController {
     @PostMapping("/newMessage")
     public ResponseEntity<MessageResponseDTO> postNewMessage(@RequestBody MessageRequestDTO message) {
         try {
-            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.createMessage(message.message(), message.conversationMember(), message.conversationID()),
+            return new ResponseEntity<>(MessageResponseDTO.from(conversationService.createMessage(message.message(), message.conversationMember(), message.conversationID(), message.isAudioMessage()),
                     conversationService.synthesizeMessageFromConversation(message.conversationID())),
                     HttpStatus.OK);
         } catch (NoSuchElementException e) {

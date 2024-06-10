@@ -22,26 +22,40 @@ public class LanguageCheckService {
         this.webClient = webClientBuilder.baseUrl("https://api.languagetoolplus.com/v2").build();
     }
 
-    public Mono<String> checkLanguage(String language) {
+    public Mono<String> checkLanguage(String text) {
         return webClient.post()
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("accept", "application/json")
-                .bodyValue("text=" + language + "&language=auto" + "&enabledOnly=false")
+                .bodyValue("text=" + text + "&language=auto" + "&enabledOnly=false")
                 .retrieve()
                 .bodyToMono(String.class);
     }
 
-    public Mono<List<MistakeResponseDTO>> checkConversation(String language) {
+    public Mono<List<MistakeResponseDTO>> checkConversation_text(String text) {
         return webClient.post()
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("accept", "application/json")
-                .bodyValue("text=" + language + "&language=auto" + "&enabledOnly=false")
+                .bodyValue("text=" + text + "&language=auto" + "&enabledOnly=false"
+                        + "&enabledCategories=GRAMMAR,SPELLING")
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(this::parseResult);
     }
+
+    public Mono<List<MistakeResponseDTO>> checkConversation_audio(String text) {
+        return webClient.post()
+                .uri("/check")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("accept", "application/json")
+                .bodyValue("text=" + text + "&language=auto" + "&enabledOnly=false"
+                        + "&enabledCategories=GRAMMAR")
+                .retrieve()
+                .bodyToMono(String.class)
+                .flatMap(this::parseResult);
+    }
+
 
     private Mono<List<MistakeResponseDTO>> parseResult(String jsonResponse) {
         List<MistakeResponseDTO> mistakeResponseDTOS = new ArrayList<>();

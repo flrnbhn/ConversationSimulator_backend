@@ -46,10 +46,17 @@ public class ExerciseServiceImpl implements ExerciseService {
     public Long createNewExercise(String title, String szenario, String furtherInformation, String roleUser, String roleSystem, Integer numberOfMessagesTillFailure, List<TaskRequestDTO> taskDTOList) {
         List<Task> taskList = taskDTOList.stream().map(taskResponseDTO -> new Task(taskResponseDTO.description())).toList();
         Exercise newExercise = new Exercise(title, szenario, furtherInformation, roleUser, roleSystem, numberOfMessagesTillFailure);
+        newExercise.setCreatedByUser(true);
         newExercise.getTasks().addAll(taskList);
         taskList.forEach(task -> task.setExercise(newExercise));
         Long exerciseId = exerciseRepository.save(newExercise).getId();
         taskRepository.saveAll(taskList);
         return exerciseId;
+    }
+
+    @Override
+    public void deleteExercise(long id) {
+        Exercise exercise = exerciseRepository.findById(id).orElseThrow();
+        exerciseRepository.delete(exercise);
     }
 }

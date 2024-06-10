@@ -32,6 +32,8 @@ public class Exercise {
 
     private int numberOfMessagesTillFailure;
 
+    private boolean createdByUser = false;
+
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
 

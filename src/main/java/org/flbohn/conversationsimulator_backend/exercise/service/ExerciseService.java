@@ -20,4 +20,6 @@ public interface ExerciseService {
     List<Task> getAllTasksForExercise(long id);
 
     Long createNewExercise(String title, String szenario, String furtherInformation, String roleUser, String roleSystem, Integer numberOfMessagesTillFailure, List<TaskRequestDTO> taskDTOList);
+
+    void deleteExercise(long id);
 }

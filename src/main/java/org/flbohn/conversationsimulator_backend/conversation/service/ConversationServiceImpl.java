@@ -72,9 +72,9 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public Message createMessage(String messageString, ConversationMember conversationMember, Long conversationId) throws NoSuchElementException {
+    public Message createMessage(String messageString, ConversationMember conversationMember, Long conversationId, boolean isAudioMessage) throws NoSuchElementException {
         Message userMessage;
-        userMessage = new Message(messageString, conversationMember);
+        userMessage = new Message(messageString, conversationMember, isAudioMessage);
 
         Message partnerMessage = null;
         Optional<Conversation> conversationOptional = conversationRepository.findById(conversationId);
@@ -90,6 +90,7 @@ public class ConversationServiceImpl implements ConversationService {
                             : openAiService.sendMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation),
                     ConversationMember.PARTNER
             );
+
 
             if (!conversation.isHighscoreConversation()) {
                 calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
@@ -218,6 +219,7 @@ public class ConversationServiceImpl implements ConversationService {
     public String translateMessage(String message, Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
         conversation.setTranslationCount(conversation.getTranslationCount() + 1);
+        conversationRepository.save(conversation);
         return openAiService.translateMessage(message);
     }
 

@@ -14,7 +14,8 @@ public record ExerciseResponseDTO(
         String roleUser,
         String roleSystem,
         Integer numberOfMessagesTillFailure,
-        List<TaskResponseDTO> taskResponseDTO
+        List<TaskResponseDTO> taskResponseDTO,
+        boolean createdByUser
 ) {
     public static ExerciseResponseDTO from(Exercise exercise) {
         return new ExerciseResponseDTO(
@@ -27,7 +28,8 @@ public record ExerciseResponseDTO(
                 exercise.getNumberOfMessagesTillFailure(),
                 new ArrayList<>(exercise.getTasks().stream()
                         .map(TaskResponseDTO::from)
-                        .toList())
+                        .toList()),
+                exercise.isCreatedByUser()
         );
     }
 }

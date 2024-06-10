@@ -73,7 +73,7 @@ public class OpenAiService {
     }
 
     private String createSystemExplanationString(Exercise exercise, Conversation conversation) {
-        String introduction = "You are a conversation simulation tool. We are now trying to simulate specific or situational conversations in order to learn foreign languages. The language for this conversation is " + conversation.getLearner().getLearningLanguage().getLanguageValue() + "! You are the simulated conversation partner and I am the learner. In order to give the conversation context and so that the conversation can be conducted by you, there are various tasks that I have to complete. ";
+        String introduction = "You are a conversation simulation tool. We are now trying to simulate specific or situational conversations in order to learn foreign languages. The language for this conversation is " + conversation.getLearner().getLearningLanguage().getLanguageValue() + "! You are the simulated conversation partner and I am the learner. In order to give the conversation context and so that the conversation can be conducted by you, there are various tasks that have to complete. ";
         String szenario = "The scenario in the following conversation situation is as follows: " + exercise.getSzenario() + " ";
         //ggf noch nummerieren
         String tasks = "The tasks that I have to complete one after the other, are as follows: " + exercise.getTasks().stream().map(Task::getDescription).collect(Collectors.joining(", ")) + " ";
@@ -105,18 +105,18 @@ public class OpenAiService {
 
         String roles = "The conversation involves a " + exercise.getRoleSystem() + " and a " + exercise.getRoleUser() + ". ";
 
-        String tasks = "Your task is to identify which of the following points have been already discussed and completed: ";
+        String tasks = "Your task is to find out which of the following points have already been fully discussed by " + exercise.getRoleUser() + ": ";
         String taskList = exercise.getTasks().stream().map(Task::getDescription).collect(Collectors.joining(", "));
         String taskDescription = tasks + taskList + ". ";
 
-        String taskClarification = "Please identify the points from the list I've given you that have already been discussed. Return only the completed points, separated by commas.";
+        String taskClarification = "Please identify the points from the list I've given you that have already been approached by " + exercise.getRoleUser() + ". A completed point is only complete when the point has been fully discussed. Return only the completed points, separated by commas.";
 
         return introduction + roles + taskDescription + taskClarification;
     }
 
-    public String evaluateConversation(List<Message> allMessages, Exercise exercise) {
+    public String evaluateConversation(List<Message> allMessages, Exercise exercise, Conversation conversation) {
         List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
-        chatCompletionMessageList.add(new ChatCompletionMessage(createSystemExplanationStringForConversationEvaluation(exercise), Role.SYSTEM));
+        chatCompletionMessageList.add(new ChatCompletionMessage(createSystemExplanationStringForConversationEvaluation(conversation), Role.SYSTEM));
 
         String conversationString = allMessages.stream()
                 .map(message -> message.getConversationMember() + ": " + message.getMessage())
@@ -127,15 +127,18 @@ public class OpenAiService {
         return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");
     }
 
-    private String createSystemExplanationStringForConversationEvaluation(Exercise exercise) {
-        String introduction = " You are a conversation analysis tool that evaluates simulated conversations.  Analyze the following conversation regarding: " + exercise.getSzenario() + ". ";
-        String roles = "The conversation involves a " + exercise.getRoleSystem() + " and a " + exercise.getRoleUser() + ". ";
-        String classification = "The conversation trained " + exercise.getRoleUser() + "conversational skills ";
-        String evaluation = "Your task is to find out what " + exercise.getRoleUser() + "could have done better in the conversation";
-        String criteria = "The following evaluation criteria apply: Used Vocabulary in conversation, relevance of content, cultural understanding";
-        String task = "Give a very short (approx. 120 Words) description of the criteria, what was not good and what could have been done better";
-        String paragraph = "Separate the individual explanations of the criteria with a paragraph";
-        return introduction + roles + classification + evaluation + criteria + task + paragraph;
+    private String createSystemExplanationStringForConversationEvaluation(Conversation conversation) {
+        String introduction = " You are a conversation analysis tool that evaluates simulated conversations.  Analyze the following conversation regarding: " + conversation.getSzenario() + ". ";
+        String roles = "The conversation involves a " + conversation.getRoleSystem() + " and a " + conversation.getRoleUser() + ". ";
+        String classification = "The conversation trained " + conversation.getRoleUser() + "conversational skills ";
+        String evaluation = "Your task is to find out what " + conversation.getRoleUser() + "could have done better in the conversation";
+        String criteria = "The following evaluation criteria apply: \"used Vocabulary in conversation\" and \"relevance of content\"";
+        String usedVocabulary = "Keep the following points of the respective criteria in mind. Used Vocabulary in conversation: Is the vocabulary from " + conversation.getRoleUser() + " diverse/varied, or are the same words/phrases always used? Are the words appropriate for the context? ";
+        String relevanceOfContent = "Relevance of content: Are" + conversation.getRoleUser() + " messages relevant to the context of the conversation? Does he provide appropriate answers to the questions? ";
+        String task = "Give a very short (approx. 100 Words) description of the criteria, what was not good and what could have been done better";
+        String paragraph = "Separate the individual explanations of the criteria with a paragraph. ";
+        String language = "Provide the explanation in German!";
+        return introduction + roles + classification + evaluation + criteria + usedVocabulary + relevanceOfContent + task + paragraph + language;
     }
 
     public String decideGenderByName(String name) {
@@ -197,7 +200,7 @@ public class OpenAiService {
 
     public String createSzenario() {
         List<ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
-        String message = "Think of a conversation scenario in which long conversations can be held. Describe the scenario very briefly and say who the two conversation partners are.";
+        String message = "Think of a conversation scenario in which long conversations can be held. Describe the scenario very briefly and say who the two conversation partners are. Describe the scenario in German!";
         ChatCompletionMessage chatCompletionMessage = new ChatCompletionMessage(message, Role.ASSISTANT);
         chatCompletionMessageList.add(chatCompletionMessage);
         return callOpenAi(chatCompletionMessageList, "gpt-4-turbo");

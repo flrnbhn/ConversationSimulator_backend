@@ -44,16 +44,17 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
     @Override
-    public String checkLanguage(String language) {
-        String s = languageCheckService.checkLanguage(language).block();
+    public String checkLanguage(String text) {
+        String s = languageCheckService.checkLanguage(text).block();
         log.warn(s);
         return s;
     }
 
     public List<MistakeResponseDTO> receiveMistakes(String conversation) {
-        List<MistakeResponseDTO> mistakeResponseDTOS = languageCheckService.checkConversation(conversation).block();
+        //  List<MistakeResponseDTO> mistakeResponseDTOS = languageCheckService.checkConversation(conversation).block();
         //persistieren
-        return mistakeResponseDTOS;
+        //   return mistakeResponseDTOS;
+        return null;
     }
 
     @Override
@@ -63,19 +64,23 @@ public class EvaluationServiceImpl implements EvaluationService {
         List<Message> messages = conversation.getMessagesOfConversation().stream()
                 .filter(message -> message.getConversationMember() == ConversationMember.USER)
                 .toList();
-
+        List<MistakeResponseDTO> currentMistakeResponseDTOS;
         for (Message message : messages) {
-            List<MistakeResponseDTO> currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation(message.getMessage()).block());
+            if (message.isVoiceMessage()) {
+                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation_audio(message.getMessage()).block());
+            } else {
+                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation_text(message.getMessage()).block());
+            }
             persistMistakesInConversationAndMessage(currentMistakeResponseDTOS, conversation, message);
             allMistakeResponseDTOS.addAll(currentMistakeResponseDTOS);
         }
-        String evaluation = openAiService.evaluateConversation(conversation.getMessagesOfConversation(), conversation.getExercise());
+        String evaluation = openAiService.evaluateConversation(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
 
         Grade grade = assignGradeToConversation(conversation, allMistakeResponseDTOS, messages);
         Integer points = assignPointsToConversation(conversation, grade);
         conversationService.saveConversation(conversation);
 
-        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points, evaluation);
+        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points, evaluation, conversation.getTranslationCount());
     }
 
 
@@ -83,7 +88,12 @@ public class EvaluationServiceImpl implements EvaluationService {
     public List<MistakeResponseDTO> receiveMistakesByConversationInHighscoreGame(Long conversationId) {
         Conversation conversation = conversationService.getConversationById(conversationId);
         Message message = conversation.getMessagesOfConversation().get(conversation.getMessagesOfConversation().size() - 2);
-        List<MistakeResponseDTO> mistakeResponseDTOs = languageCheckService.checkConversation(message.getMessage()).block();
+        List<MistakeResponseDTO> mistakeResponseDTOs;
+        if (message.isVoiceMessage()) {
+            mistakeResponseDTOs = Objects.requireNonNull(languageCheckService.checkConversation_audio(message.getMessage()).block());
+        } else {
+            mistakeResponseDTOs = Objects.requireNonNull(languageCheckService.checkConversation_text(message.getMessage()).block());
+        }
         persistMistakesInConversationAndMessage(mistakeResponseDTOs, conversation, message);
 
         return mistakeResponseDTOs;
@@ -110,7 +120,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
     private Grade assignGradeToConversation(Conversation conversation, List<MistakeResponseDTO> mistakeResponseDTOS, List<Message> messages) {
-        Grade grade = calculateGrade(mistakeResponseDTOS, messages);
+        Grade grade = calculateGrade(mistakeResponseDTOS, messages, conversation);
         conversation.setGradeOfConversation(grade);
         conversation.getLearner().getAllGrades().add(grade);
         conversation.getLearner().setGradeAverage(calcGradeAverage(conversation.getLearner()));
@@ -130,7 +140,7 @@ public class EvaluationServiceImpl implements EvaluationService {
         return gradeAddition / allGrades.size();
     }
 
-    private Grade calculateGrade(List<MistakeResponseDTO> mistakeResponseDTOS, List<Message> messages) {
+    private Grade calculateGrade(List<MistakeResponseDTO> mistakeResponseDTOS, List<Message> messages, Conversation conversation) {
         int mistakeCount = mistakeResponseDTOS.size();
         int wordCount = countWordsInUserMessages(messages.stream().map(Message::getMessage).toList());
         if (mistakeCount == 0) {
@@ -138,6 +148,7 @@ public class EvaluationServiceImpl implements EvaluationService {
         }
 
         double failureRate = ((double) mistakeCount / wordCount) * 100;
+        failureRate -= ((double) conversation.getTranslationCount() / 10);
 
         if (failureRate <= 1) {
             return Grade.ONE;
