@@ -41,12 +41,11 @@ public class ExerciseInitializer implements InitializingBean {
 
     private Exercise createFoodOrderRestaurantExercise() {
         Exercise foodOrderRestaurant = new Exercise("Essensbestellung", "Der Gast bestellt Essen in einem Restaurant. Der Kellner bedient dabei den Gast", "In einem Noblen Restaurant", "Gast", "Kellner", 25);
-        Task greetingTask = new Task("Erläutere, dass du eine Bestellung aufgeben möchtest");
         Task starterTask = new Task("Bestelle eine Vorspeise");
         Task mainTask = new Task("Bestelle eine Hauptspeise");
         Task dessertTask = new Task("Bestelle einen Nachtisch");
         Task goodbyeTask = new Task("Verabschiede dich");
-        List<Task> tasks = new ArrayList<>(List.of(greetingTask, starterTask, mainTask, dessertTask, goodbyeTask));
+        List<Task> tasks = new ArrayList<>(List.of(starterTask, mainTask, dessertTask, goodbyeTask));
         tasks.forEach(task -> task.setExercise(foodOrderRestaurant));
         foodOrderRestaurant.setTasks(tasks);
         exerciseRepository.save(foodOrderRestaurant);
