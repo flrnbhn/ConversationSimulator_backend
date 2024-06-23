@@ -23,14 +23,15 @@ public class ExerciseInitializer implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         // Initial Exercises
-        List<Exercise> initialExercises = createInitialExercises();
+        if (exerciseRepository.findAll().isEmpty()) {
+            createInitialExercises();
+        }
     }
 
     private List<Exercise> createInitialExercises() {
         List<Exercise> exercises = new ArrayList<>();
         exercises.add(createFoodOrderRestaurantExercise());
         exercises.add(createDoktorExercise());
-        exercises.add(createTestExercise());
         exercises.add(createHotelCheckInExercise());
         exercises.add(createShoppingExercise());
         exercises.add(createPublicTransportExercise());
@@ -40,11 +41,11 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createFoodOrderRestaurantExercise() {
-        Exercise foodOrderRestaurant = new Exercise("Essensbestellung", "Der Gast bestellt Essen in einem Restaurant. Der Kellner bedient dabei den Gast", "In einem Noblen Restaurant", "Gast", "Kellner", 25);
+        Exercise foodOrderRestaurant = new Exercise("Essensbestellung", "Der Gast sitzt in einem noblen Restaurant und hat ziemlichen Hunger. Zum Glück kommt nun endlich der Kellner um seine Bestellung aufzunehmen.", "In einem Noblen Restaurant", "Gast", "Kellner", 25);
         Task starterTask = new Task("Bestelle eine Vorspeise");
         Task mainTask = new Task("Bestelle eine Hauptspeise");
         Task dessertTask = new Task("Bestelle einen Nachtisch");
-        Task goodbyeTask = new Task("Verabschiede dich");
+        Task goodbyeTask = new Task("Bedanke dich");
         List<Task> tasks = new ArrayList<>(List.of(starterTask, mainTask, dessertTask, goodbyeTask));
         tasks.forEach(task -> task.setExercise(foodOrderRestaurant));
         foodOrderRestaurant.setTasks(tasks);
@@ -55,7 +56,7 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createDoktorExercise() {
-        Exercise doktorDate = new Exercise("Arzt Termin machen", "Du machst einen Arzt Termin", "Zahnarzt", "patient", "arzt", 5);
+        Exercise doktorDate = new Exercise("Arzt Termin machen", "Der Patient plagen seit einigen Tagen starke Bauchschmerzen. Daher entscheidet er sich, einen Arzttermin zu vereinbaren. Er ruft in der Arztpraxis an, um seinen Gesundheitszustand zu besprechen und einen passenden Termin zu finden.", "", "Patient", "Arzt", 20);
         Task problemTask = new Task("Schilder das Problem");
         Task timeTask = new Task("Mache eine Uhrzeit für einen Termin aus");
         List<Task> tasks = new ArrayList<>(List.of(problemTask, timeTask));
@@ -66,19 +67,9 @@ public class ExerciseInitializer implements InitializingBean {
         return doktorDate;
     }
 
-    private Exercise createTestExercise() {
-        Exercise exercise = new Exercise("Grüßen", "Du siehst jemanden auf der Straße und grüßt ihn", "", "person", "person", 5);
-        Task problemTask = new Task("Grüße die Person zurück");
-        List<Task> tasks = new ArrayList<>(List.of(problemTask));
-        tasks.forEach(task -> task.setExercise(exercise));
-        exercise.setTasks(tasks);
-        exerciseRepository.save(exercise);
-        taskRepository.saveAll(tasks);
-        return exercise;
-    }
 
     private Exercise createHotelCheckInExercise() {
-        Exercise hotelCheckIn = new Exercise("Hotel Check-In", "Du checkst in ein Hotel ein", "Hotel Lobby", "Gast", "Rezeptionist", 10);
+        Exercise hotelCheckIn = new Exercise("Hotel Check-In", "Der Gast kommst nach einer langen Reise endlich in deinem Hotel an. Die Lobby ist groß und einladend, und er freut dich darauf, in sein Zimmer zu kommen und sich auszuruhen. Am Empfang wartet bereits der Rezeptionist, um ihm beim Check-In zu helfen.", "Hotel Lobby", "Gast", "Rezeptionist", 20);
         Task greetTask = new Task("Grüße den Rezeptionisten");
         Task reservationTask = new Task("Gib deine Reservierungsdetails an");
         Task roomPreferenceTask = new Task("Teile deine Zimmerpräferenzen mit");
@@ -93,14 +84,13 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createShoppingExercise() {
-        Exercise shopping = new Exercise("Einkaufen", "Du gehst in ein Geschäft, um einzukaufen", "Supermarkt", "Kunde", "Verkäufer", 15);
+        Exercise shopping = new Exercise("Elektronikgeschäft", "Der Kunde möchtest sich ein neues Smartphone zulegen und betrittst dazu ein Elektronikgeschäft. Dort erwartest er kompetente Beratung vom Verkäufer, um das für sich beste Modell zu finden.", "", "Kunde", "Verkäufer", 20);
         Task greetingTask = new Task("Grüße den Verkäufer");
-        Task askProductTask = new Task("Frage nach einem bestimmten Produkt");
-        Task askPriceTask = new Task("Frage nach dem Preis des Produkts");
-        Task negotiateTask = new Task("Versuche zu verhandeln");
-        Task payTask = new Task("Bezahle das Produkt");
+        Task askProductTask = new Task("Frage nach den aktuell besten Smartphones");
+        Task askPriceTask = new Task("Frage nach dem Preisen");
+        Task negotiateTask = new Task("Entscheide dich für ein Smartphone");
         Task thankTask = new Task("Bedanke dich beim Verkäufer");
-        List<Task> tasks = new ArrayList<>(List.of(greetingTask, askProductTask, askPriceTask, negotiateTask, payTask, thankTask));
+        List<Task> tasks = new ArrayList<>(List.of(greetingTask, askProductTask, askPriceTask, negotiateTask, thankTask));
         tasks.forEach(task -> task.setExercise(shopping));
         shopping.setTasks(tasks);
         exerciseRepository.save(shopping);
@@ -109,12 +99,11 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createPublicTransportExercise() {
-        Exercise publicTransport = new Exercise("Öffentliche Verkehrsmittel", "Du nutzt öffentliche Verkehrsmittel", "Bus- oder Bahnstation", "Fahrgast", "Schaffner", 10);
-        Task askTicketTask = new Task("Frage nach einem Ticket");
-        Task askRouteTask = new Task("Frage nach der Route");
+        Exercise publicTransport = new Exercise("Öffentliche Verkehrsmittel", "Der Fahrgast befindest sich an einer Bus- oder Bahnstation und musst nach Hamburg reisen. Allerdings ist er unsicher, welchen Zug er nehmen musst und benötigst außerdem noch ein Ticket. Der Schaffner ist seine Anlaufstelle für diese Informationen.", "Bus- oder Bahnstation", "Fahrgast", "Schaffner", 20);
+        Task askTicketTask = new Task("Frage nach der Zugverbindung");
         Task askDepartureTask = new Task("Frage nach der Abfahrtszeit");
         Task validateTicketTask = new Task("Frage nach dem Preis und bezahle das Ticket");
-        List<Task> tasks = new ArrayList<>(List.of(askTicketTask, validateTicketTask, askRouteTask, askDepartureTask));
+        List<Task> tasks = new ArrayList<>(List.of(askTicketTask, askDepartureTask, validateTicketTask));
         tasks.forEach(task -> task.setExercise(publicTransport));
         publicTransport.setTasks(tasks);
         exerciseRepository.save(publicTransport);
@@ -123,7 +112,7 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createJobInterviewExercise() {
-        Exercise jobInterview = new Exercise("Vorstellungsgespräch", "Du nimmst an einem Vorstellungsgespräch teil", "Büro", "Bewerber", "Interviewer", 40);
+        Exercise jobInterview = new Exercise("Vorstellungsgespräch", "Der Bewerber hat ein Vorstellungsgespräch in einem Callcenter und bereitest sich darauf vor, um sich von deiner besten Seite zu zeigen.", "Büro", "Bewerber", "Interviewer", 40);
         Task greetTask = new Task("Begrüße den Interviewer");
         Task selfIntroductionTask = new Task("Stelle dich vor und gib einen Überblick über deinen Hintergrund");
         Task experienceTask = new Task("Beschreibe deine Berufserfahrung");
@@ -139,7 +128,7 @@ public class ExerciseInitializer implements InitializingBean {
     }
 
     private Exercise createHouseRentalExercise() {
-        Exercise houseRental = new Exercise("Hausmiete", "Du mietest ein Haus", "Vermieterbüro", "Mieter", "Vermieter", 30);
+        Exercise houseRental = new Exercise("Hausmiete", "Der Mieter möchte in ein neues Zuhause umziehen und besuchst dazu das Büro eines Vermieters. Der Mieter ist auf der Suche nach einem passenden Haus und möchte alle wichtigen Details und Bedingungen klären.", "Vermieterbüro", "Mieter", "Vermieter", 30);
         Task greetTask = new Task("Begrüße den Vermieter");
         Task inquireAvailabilityTask = new Task("Erkundige dich nach verfügbaren Häusern");
         Task discussPriceTask = new Task("Diskutiere die Mietpreise und zusätzliche Kosten");

@@ -92,9 +92,9 @@ public class ConversationServiceImpl implements ConversationService {
             );
 
 
-            if (!conversation.isHighscoreConversation()) {
+           /* if (!conversation.isHighscoreConversation()) {
                 calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
-            }
+            }*/
 
             partnerMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(partnerMessage);
@@ -109,7 +109,7 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public List<Task> getEvaluatedTasks(Long conversationId) {
         Optional<Conversation> conversationOptional = conversationRepository.findById(conversationId);
-        if (conversationOptional.isPresent()) {
+        if (conversationOptional.isPresent() && conversationOptional.get().getMessagesOfConversation().size() > 1) {
             Conversation conversation = conversationOptional.get();
             return calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
         }

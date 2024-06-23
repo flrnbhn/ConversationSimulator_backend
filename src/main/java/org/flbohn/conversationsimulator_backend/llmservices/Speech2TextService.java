@@ -65,23 +65,18 @@ public class Speech2TextService {
 
 
     public String transcribeAudio(String base64EncodedAudio) {
-        // Konvertiere den Base64-codierten Audio-String in ein Byte-Array
         byte[] audioBytes = Base64.getDecoder().decode(base64EncodedAudio);
 
-        // Generiere einen eindeutigen Namen für die Audiodatei
         String audioFileName = UUID.randomUUID().toString() + ".mp3";
 
-        // Lade die Audiodatei zu S3 hoch
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(audioFileName)
                 .build();
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(audioBytes));
 
-        // Erstelle die URL zur Audiodatei in S3
         String mediaFileUri = String.format("s3://%s/%s", bucketName, audioFileName);
 
-        // Erstelle die Anfrage an den Transcribe-Dienst
         Media media = Media.builder()
                 .mediaFileUri(mediaFileUri)
                 .build();
@@ -95,10 +90,8 @@ public class Speech2TextService {
                 .outputKey("transcriptions/" + audioFileName + ".json") // Ausgabe-Key anpassen
                 .build();
 
-        // Starte die Transkription
         StartTranscriptionJobResponse response = transcribeClient.startTranscriptionJob(request);
 
-        // Warte auf die Transkription, bis sie abgeschlossen ist
         GetTranscriptionJobResponse transcriptionJobResponse;
         GetTranscriptionJobRequest getTranscriptionJobRequest = GetTranscriptionJobRequest.builder()
                 .transcriptionJobName(response.transcriptionJob().transcriptionJobName())
@@ -107,9 +100,7 @@ public class Speech2TextService {
             transcriptionJobResponse = transcribeClient.getTranscriptionJob(getTranscriptionJobRequest);
         } while (transcriptionJobResponse.transcriptionJob().transcriptionJobStatus() == TranscriptionJobStatus.IN_PROGRESS);
 
-        // Überprüfe, ob die Transkription erfolgreich war
         if (transcriptionJobResponse.transcriptionJob().transcriptionJobStatus() == TranscriptionJobStatus.COMPLETED) {
-            // Lade die Transkriptionsdatei von S3 herunter
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket("conversation-simulator-bucket")
                     .key("transcriptions/" + audioFileName + ".json")

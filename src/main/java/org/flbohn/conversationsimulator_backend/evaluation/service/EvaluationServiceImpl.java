@@ -54,7 +54,7 @@ public class EvaluationServiceImpl implements EvaluationService {
         //  List<MistakeResponseDTO> mistakeResponseDTOS = languageCheckService.checkConversation(conversation).block();
         //persistieren
         //   return mistakeResponseDTOS;
-        return null;
+        return languageCheckService.doGrammarCheckWithOpenAi(conversation, true);
     }
 
     @Override
@@ -67,9 +67,9 @@ public class EvaluationServiceImpl implements EvaluationService {
         List<MistakeResponseDTO> currentMistakeResponseDTOS;
         for (Message message : messages) {
             if (message.isVoiceMessage()) {
-                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation_audio(message.getMessage()).block());
+                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.doGrammarCheckWithOpenAi(message.getMessage(), true));
             } else {
-                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation_text(message.getMessage()).block());
+                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.doGrammarCheckWithOpenAi(message.getMessage(), false));
             }
             persistMistakesInConversationAndMessage(currentMistakeResponseDTOS, conversation, message);
             allMistakeResponseDTOS.addAll(currentMistakeResponseDTOS);
