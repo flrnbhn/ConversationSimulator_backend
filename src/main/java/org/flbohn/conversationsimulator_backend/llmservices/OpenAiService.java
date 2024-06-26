@@ -111,17 +111,20 @@ public class OpenAiService {
 
     private String createSystemExplanationStringForTaskEvaluation(Exercise exercise) {
         String introduction = "You are a conversation analysis tool. The scenario of the conversation is as follows: " + exercise.getSzenario() + ".\n";
-
         String roles = "The conversation involves a " + exercise.getRoleSystem() + " and a " + exercise.getRoleUser() + ".\n";
-
-        String task = "Your task is to identify which of the following tasks have been completed by the " + exercise.getRoleUser() + " in the conversation.\n";
-
-        String taskList = "The tasks are:\n" + exercise.getTasks().stream().map(t -> "- " + t.getDescription()).collect(Collectors.joining("\n")) + "\n";
-
-        String taskClarification = "Please identify only the tasks from the list above that the " + exercise.getRoleUser() + " has fully discussed and completed.\n" +
-                "A task is considered complete only if it has been fully discussed and completed by the " + exercise.getRoleUser() + ".\n" +
-                "Ignore any discussions or actions taken by the " + exercise.getRoleSystem() + ".\n" +
-                "Return only the completed tasks, separated by commas, and nothing more.";
+        String task = "Your task is to find out whether " + exercise.getRoleUser() + " has already talked about the following points.\n";
+        String taskList = "The points, which should reflect the course of the conversation, are:\n" + exercise.getTasks().stream().map(t -> "- " + t.getDescription()).collect(Collectors.joining("\n")) + "\n";
+        String taskClarification = "Please identify only the points from the list above that the " + exercise.getRoleUser() + " has fully discussed and completed.\n" +
+                "A point is only considered completed when the " + exercise.getRoleUser() + " in the discussion has achieved what is described in the task.\n" +
+                exercise.getRoleUser() + " does not necessarily have to reproduce exactly what the point describes. Only the goal of the task should be fulfilled.\n" +
+                "Ignore any discussions or actions taken by the " + exercise.getRoleSystem() + ". This means that when" + exercise.getRoleSystem() + " talks about the point, it is not completed\n" +
+                "To Understand: Example of a fully completed point (point-example: Order a Starter in a Restaurant):\n" +
+                "Person2: Do you want to order a starter? <- Ignore, Point not completed only when person1 has also ordered \n" +
+                "Person1: I would like to order a starter <- Point not yet completed, person has not yet ordered a starter, she has only noted that she is now planning to order one\n" +
+                "Person2: With pleasure. What would you like? <- Ignore \n" +
+                "Person1: I would take the tomato soup. <- Point only now completed. Person1 has now ordered something as a starter\n" +
+                "Person2: With pleasure\n" +
+                "Return only the completed points, separated by commas, and nothing more!\n";
 
         return introduction + roles + task + taskList + taskClarification;
     }

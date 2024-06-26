@@ -57,7 +57,7 @@ public class ExerciseInitializer implements InitializingBean {
 
     private Exercise createDoktorExercise() {
         Exercise doktorDate = new Exercise("Arzt Termin machen", "Der Patient plagen seit einigen Tagen starke Bauchschmerzen. Daher entscheidet er sich, einen Arzttermin zu vereinbaren. Er ruft in der Arztpraxis an, um seinen Gesundheitszustand zu besprechen und einen passenden Termin zu finden.", "", "Patient", "Arzt", 20);
-        Task problemTask = new Task("Schilder das Problem");
+        Task problemTask = new Task("Beschreibe deine Beschwerden");
         Task timeTask = new Task("Mache eine Uhrzeit für einen Termin aus");
         List<Task> tasks = new ArrayList<>(List.of(problemTask, timeTask));
         tasks.forEach(task -> task.setExercise(doktorDate));

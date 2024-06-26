@@ -152,6 +152,7 @@ public class ConversationServiceImpl implements ConversationService {
                     if (!conversation.getCompletedTasks().contains(task)) {
                         conversation.getCompletedTasks().add(task);
                         task.getConversationsWhereTaskCompleted().add(conversation);
+                        conversationRepository.save(conversation);
                     }
                 }));
 

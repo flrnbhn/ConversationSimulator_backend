@@ -48,8 +48,7 @@ public class LanguageCheckService {
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("accept", "application/json")
-                .bodyValue("text=" + text + "&language=auto" + "&enabledOnly=true"
-                        + "&enabledCategories=GRAMMAR,TYPOS,SEMANTICS,FALSE_FRIENDS,PUNCTUATION,CONFUSED_WORDS,COMPOUNDING,CASING")
+                .bodyValue("text=" + text + "&language=auto")
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(this::parseResult);
@@ -60,8 +59,8 @@ public class LanguageCheckService {
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("accept", "application/json")
-                .bodyValue("text=" + text + "&language=auto" + "&enabledOnly=true"
-                        + "&enabledCategories=GRAMMAR,CONFUSED_WORDS,FALSE_FRIENDS,SEMANTICS")
+                .bodyValue("text=" + text + "&language=auto"
+                        + "&disabledCategories=TYPOS,PUNCTUATION,COMPOUNDING,CASING")
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(this::parseResult);
@@ -104,6 +103,23 @@ public class LanguageCheckService {
         JsonNode rootNode = null;
         try {
             rootNode = objectMapper.readTree(jsonResponse);
+            JsonNode matchesNode = rootNode.get("matches");
+
+            if (matchesNode != null && matchesNode.isArray()) {
+                for (JsonNode matchNode : matchesNode) {
+                    String message = matchNode.path("message").asText();
+                    String shortMessage = matchNode.path("shortMessage").asText();
+                    Integer offset = matchNode.path("offset").asInt();
+                    Integer length = matchNode.path("length").asInt();
+                    String sentence = matchNode.path("sentence").asText();
+                    List<String> replacements = new ArrayList<>();
+                    for (JsonNode replacementNode : matchNode.path("replacements")) {
+                        replacements.add(replacementNode.path("value").asText());
+                    }
+                    MistakeResponseDTO mistakeResponseDTO = new MistakeResponseDTO(message, shortMessage, replacements, offset, length, sentence);
+                    mistakeResponseDTOS.add(mistakeResponseDTO);
+                }
+            }
         } catch (JsonProcessingException e) {
             if (isVoiceMessage) {
                 mistakeResponseDTOS = checkConversation_audio(text).block();
@@ -111,23 +127,6 @@ public class LanguageCheckService {
                 mistakeResponseDTOS = checkConversation_text(text).block();
             }
             log.error(String.valueOf(e));
-        }
-        JsonNode matchesNode = rootNode.get("matches");
-
-        if (matchesNode != null && matchesNode.isArray()) {
-            for (JsonNode matchNode : matchesNode) {
-                String message = matchNode.path("message").asText();
-                String shortMessage = matchNode.path("shortMessage").asText();
-                Integer offset = matchNode.path("offset").asInt();
-                Integer length = matchNode.path("length").asInt();
-                String sentence = matchNode.path("sentence").asText();
-                List<String> replacements = new ArrayList<>();
-                for (JsonNode replacementNode : matchNode.path("replacements")) {
-                    replacements.add(replacementNode.path("value").asText());
-                }
-                MistakeResponseDTO mistakeResponseDTO = new MistakeResponseDTO(message, shortMessage, replacements, offset, length, sentence);
-                mistakeResponseDTOS.add(mistakeResponseDTO);
-            }
         }
 
 
