@@ -10,16 +10,32 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * Service for execute a Conversation
+ */
 @Service
 public interface ConversationService {
 
+    /**
+     * Triggers the generation for a message and persists it
+     */
     Message createMessage(String message, ConversationMember conversationMember, Long conversationId, boolean isAudioMessage);
 
+    /**
+     * Declares a new conversation
+     */
     Conversation createConversation(Date conversationStartDate, Long exerciseId, Long learnerId);
 
+    /**
+     * Initializes a new conversation and triggers the first message generation
+     */
     Message initConversation(Long conversationId);
 
-    List<Task> getEvaluatedTasks(Long conversationId);
+    /**
+     * Returns the completed tasks
+     */
+    List<Task> getFinishedTasks(Long conversationId);
 
     boolean changeConversationStatus(Long conversationId, ConversationStatus status);
 
@@ -27,6 +43,9 @@ public interface ConversationService {
 
     Conversation saveConversation(Conversation conversation);
 
+    /**
+     * Declares a new highscoreConversation
+     */
     Conversation createHighScoreConversation(Date conversationStartDate, Long learnerId);
 
     List<Conversation> getAllConversations();

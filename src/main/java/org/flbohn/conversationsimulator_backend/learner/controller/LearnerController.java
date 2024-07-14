@@ -1,7 +1,6 @@
 package org.flbohn.conversationsimulator_backend.learner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import org.flbohn.conversationsimulator_backend.conversation.controller.ConversationController;
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 import org.flbohn.conversationsimulator_backend.conversation.dto.conversation.ConversationResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
@@ -11,8 +10,6 @@ import org.flbohn.conversationsimulator_backend.learner.dto.LearnerRegistrateReq
 import org.flbohn.conversationsimulator_backend.learner.dto.LearnerResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.service.LearnerService;
 import org.flbohn.conversationsimulator_backend.learner.types.LearningLanguageDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +18,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * controller for user management
+ */
 @RestController
 @RequestMapping("/learner")
 public class LearnerController {
 
-    private static final Logger log = LoggerFactory.getLogger(ConversationController.class);
     private final LearnerService learnerService;
 
     @Autowired
@@ -72,7 +71,7 @@ public class LearnerController {
     @Operation(summary = "Get all Conversation from Learner")
     @GetMapping("conversations/{learnerId}")
     public ResponseEntity<List<ConversationResponseDTO>> getConversationsByLearnerId(@PathVariable long learnerId) {
-        List<Conversation> conversations = learnerService.getAllConversationsFromLearner(learnerId);
+        List<Conversation> conversations = learnerService.getAllFinishedConversationsFromLearner(learnerId);
         return new ResponseEntity<>(conversations.stream()
                 .map(ConversationResponseDTO::from)
                 .toList(), HttpStatus.OK);

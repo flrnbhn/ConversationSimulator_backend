@@ -1,4 +1,4 @@
-package org.flbohn.conversationsimulator_backend.llmservices;
+package org.flbohn.conversationsimulator_backend.otherservices;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,7 +10,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-
+/**
+ * service necessary for the synthesize text in speech. Communicates with AWS Polly.
+ */
 @Service
 public class Text2SpeechService {
 
@@ -20,6 +22,15 @@ public class Text2SpeechService {
     public Text2SpeechService(PollyClient pollyClient) {
         this.pollyClient = pollyClient;
     }
+
+    /**
+     * Synthesized text in speech
+     *
+     * @param text     text to be synthesized
+     * @param language language of text
+     * @param gender   gender for voice-decision.
+     * @return byte array that represents speech
+     */
 
     public byte[] synthesizeSpeech(String text, String language, String gender) {
         DescribeVoicesRequest describeVoiceRequest = DescribeVoicesRequest.builder()

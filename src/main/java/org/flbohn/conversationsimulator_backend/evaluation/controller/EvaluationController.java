@@ -7,9 +7,16 @@ import org.flbohn.conversationsimulator_backend.evaluation.service.EvaluationSer
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
+/**
+ * restcontroller to evaluate conversation
+ */
 
 @RestController
 @RequestMapping("/evaluation")
@@ -22,27 +29,16 @@ public class EvaluationController {
         this.evaluationService = evaluationService;
     }
 
-    @Operation(summary = "Check Language")
-    @PostMapping("/test")
-    public ResponseEntity<String> postNewLanguageCheckTest(@RequestBody String checkingString) {
-        return new ResponseEntity<>(evaluationService.checkLanguage(checkingString), HttpStatus.OK);
-    }
-
-    @Operation(summary = "Check Sentence about mistakes")
-    @PostMapping("")
-    public ResponseEntity<List<MistakeResponseDTO>> postNewLanguageCheck(@RequestBody String checkingString) {
-        return new ResponseEntity<>(evaluationService.receiveMistakes(checkingString), HttpStatus.OK);
-    }
 
     @Operation(summary = "Check Conversation about mistakes")
     @PostMapping("/{conversationId}")
     public ResponseEntity<EvaluationResponseDTO> postNewLanguageCheckForConversation(@PathVariable Long conversationId) {
-        return new ResponseEntity<>(evaluationService.receiveMistakesByConversation(conversationId), HttpStatus.OK);
+        return new ResponseEntity<>(evaluationService.receiveEvaluationFromConversation(conversationId), HttpStatus.OK);
     }
 
     @Operation(summary = "Check Conversation about mistakes in Highscore-Game")
     @PostMapping("/highscore/{conversationId}")
     public ResponseEntity<List<MistakeResponseDTO>> postNewLanguageCheckForConversationInHighscoreGame(@PathVariable Long conversationId) {
-        return new ResponseEntity<>(evaluationService.receiveMistakesByConversationInHighscoreGame(conversationId), HttpStatus.OK);
+        return new ResponseEntity<>(evaluationService.receiveMistakesForHighscoreMessage(conversationId), HttpStatus.OK);
     }
 }

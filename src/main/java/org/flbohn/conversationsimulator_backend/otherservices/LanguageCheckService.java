@@ -1,4 +1,4 @@
-package org.flbohn.conversationsimulator_backend.llmservices;
+package org.flbohn.conversationsimulator_backend.otherservices;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,6 +17,10 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service which is responsible for the communication with the languageTool-Api
+ */
+
 @Service
 public class LanguageCheckService {
 
@@ -33,17 +37,10 @@ public class LanguageCheckService {
 
     }
 
-    public Mono<String> checkLanguage(String text) {
-        return webClient.post()
-                .uri("/check")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("accept", "application/json")
-                .bodyValue("text=" + text + "&language=auto" + "&enabledOnly=false")
-                .retrieve()
-                .bodyToMono(String.class);
-    }
-
-    public Mono<List<MistakeResponseDTO>> checkConversation_text(String text) {
+    /**
+     * checks text message for errors
+     */
+    public Mono<List<MistakeResponseDTO>> checkConversationMessage_text(String text) {
         return webClient.post()
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -55,7 +52,10 @@ public class LanguageCheckService {
                 .flatMap(this::parseResult);
     }
 
-    public Mono<List<MistakeResponseDTO>> checkConversation_audio(String text) {
+    /**
+     * checks transcribed voice message for errors
+     */
+    public Mono<List<MistakeResponseDTO>> checkConversationMessage_audio(String text) {
         return webClient.post()
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -68,6 +68,9 @@ public class LanguageCheckService {
     }
 
 
+    /**
+     * Creates a mistakeResponseDTO from the json response
+     */
     private Mono<List<MistakeResponseDTO>> parseResult(String jsonResponse) {
         List<MistakeResponseDTO> mistakeResponseDTOS = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -123,9 +126,9 @@ public class LanguageCheckService {
             }
         } catch (JsonProcessingException e) {
             if (isVoiceMessage) {
-                mistakeResponseDTOS = checkConversation_audio(text).block();
+                mistakeResponseDTOS = checkConversationMessage_audio(text).block();
             } else {
-                mistakeResponseDTOS = checkConversation_text(text).block();
+                mistakeResponseDTOS = checkConversationMessage_text(text).block();
             }
             log.error(String.valueOf(e));
         }
@@ -134,12 +137,14 @@ public class LanguageCheckService {
         return mistakeResponseDTOS;
     }
 
+    /**
+     * Alternative approach: checking texts with llm. But it is difficult to standardize, so this variant was not used.
+     */
     public List<MistakeResponseDTO> doGrammarCheckWithOpenAi(String text, boolean isVoiceMessage) {
         List<OpenAiApi.ChatCompletionMessage> chatCompletionMessageList = new ArrayList<>();
         OpenAiApi.ChatCompletionMessage chatCompletionMessage = new OpenAiApi.ChatCompletionMessage(createExplanation(text, isVoiceMessage), OpenAiApi.ChatCompletionMessage.Role.SYSTEM);
         chatCompletionMessageList.add(chatCompletionMessage);
         return parseResultForGPT(callOpenAi(chatCompletionMessageList, "gpt-4-turbo"), text, isVoiceMessage);
-
     }
 
 

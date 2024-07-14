@@ -6,16 +6,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service to evaluate Conversations
+ */
 @Service
 public interface EvaluationService {
 
-    String checkLanguage(String language);
+    /**
+     * Provides evaluation at the end of a conversation
+     */
+    EvaluationResponseDTO receiveEvaluationFromConversation(Long conversationId);
 
-    List<MistakeResponseDTO> receiveMistakes(String conversation);
-
-    EvaluationResponseDTO receiveMistakesByConversation(Long conversationId);
-
-    List<MistakeResponseDTO> receiveMistakesByConversationInHighscoreGame(Long conversationId);
+    /**
+     * Checks mistakes for new message in the highscore game
+     */
+    List<MistakeResponseDTO> receiveMistakesForHighscoreMessage(Long conversationId);
 
 
 }

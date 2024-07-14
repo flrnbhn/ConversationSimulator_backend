@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+/**
+ * RestController rest controller for the execution of a conversation.
+ */
+
 @RestController
 @RequestMapping("/conversation")
 public class ConversationController {
@@ -64,7 +68,7 @@ public class ConversationController {
     @Operation(summary = "Get all finished Tasks")
     @GetMapping("/finishedTasks/{conversationId}")
     public ResponseEntity<List<TaskResponseDTO>> getFinishedTasks(@PathVariable Long conversationId) {
-        return new ResponseEntity<>(conversationService.getEvaluatedTasks(conversationId).stream()
+        return new ResponseEntity<>(conversationService.getFinishedTasks(conversationId).stream()
                 .map(TaskResponseDTO::from)
                 .toList(), HttpStatus.OK);
     }

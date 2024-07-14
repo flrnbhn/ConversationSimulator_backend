@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service for user management
+ */
 @Service
 public interface LearnerService {
 
@@ -21,8 +24,14 @@ public interface LearnerService {
 
     void setConversationForLearner(Conversation conversation);
 
-    List<Conversation> getAllConversationsFromLearner(long id);
+    /**
+     * Get all finished conversation from learner. This includes also grades and points for each conversation
+     */
+    List<Conversation> getAllFinishedConversationsFromLearner(long id);
 
+    /**
+     * Get all highscores from all Learners
+     */
     List<HighScoreLearnersResponseDTO> getAllHighscores();
 
     void changeLearningLanguage(long id, LearningLanguage learningLanguage);

@@ -12,14 +12,11 @@ import software.amazon.awssdk.services.transcribe.TranscribeClient;
 @Configuration
 public class AWSConfig {
 
-    //@Value("${aws.accessKeyId}")
     private final String accessKeyId = System.getenv("AWS_ACCESS_KEY_ID");
 
-    //@Value("${aws.secretAccessKey}")
     private final String secretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY");
 
     private AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
-
 
     @Bean
     public PollyClient pollyClient() {

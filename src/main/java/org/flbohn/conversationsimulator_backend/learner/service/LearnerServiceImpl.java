@@ -60,7 +60,7 @@ public class LearnerServiceImpl implements LearnerService {
     }
 
     @Override
-    public List<Conversation> getAllConversationsFromLearner(long id) {
+    public List<Conversation> getAllFinishedConversationsFromLearner(long id) {
         return learnerRepository.findById(id).orElseThrow().getConversations().stream()
                 .filter(conversation -> !conversation.isHighscoreConversation())
                 .filter(conversation -> conversation.getConversationStatus() == ConversationStatus.PASSED)

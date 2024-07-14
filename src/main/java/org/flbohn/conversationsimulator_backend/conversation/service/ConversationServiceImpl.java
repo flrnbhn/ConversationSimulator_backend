@@ -10,9 +10,9 @@ import org.flbohn.conversationsimulator_backend.exercise.domain.Exercise;
 import org.flbohn.conversationsimulator_backend.exercise.domain.Task;
 import org.flbohn.conversationsimulator_backend.exercise.service.ExerciseService;
 import org.flbohn.conversationsimulator_backend.learner.service.LearnerService;
-import org.flbohn.conversationsimulator_backend.llmservices.OpenAiService;
-import org.flbohn.conversationsimulator_backend.llmservices.Speech2TextService;
-import org.flbohn.conversationsimulator_backend.llmservices.Text2SpeechService;
+import org.flbohn.conversationsimulator_backend.otherservices.LLMService;
+import org.flbohn.conversationsimulator_backend.otherservices.Speech2TextService;
+import org.flbohn.conversationsimulator_backend.otherservices.Text2SpeechService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     private final ExerciseService exerciseService;
 
-    private final OpenAiService openAiService;
+    private final LLMService LLMService;
 
     private final LearnerService learnerService;
 
@@ -41,11 +41,11 @@ public class ConversationServiceImpl implements ConversationService {
 
 
     @Autowired
-    public ConversationServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, ExerciseService exerciseService, OpenAiService openAiService, LearnerService learnerService, Text2SpeechService text2SpeechService, Speech2TextService speech2TextService) {
+    public ConversationServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, ExerciseService exerciseService, LLMService LLMService, LearnerService learnerService, Text2SpeechService text2SpeechService, Speech2TextService speech2TextService) {
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
         this.exerciseService = exerciseService;
-        this.openAiService = openAiService;
+        this.LLMService = LLMService;
         this.learnerService = learnerService;
         this.text2SpeechService = text2SpeechService;
         this.speech2TextService = speech2TextService;
@@ -61,8 +61,8 @@ public class ConversationServiceImpl implements ConversationService {
             Conversation conversation = conversationOptional.get();
             partnerMessage = new Message(
                     conversation.isHighscoreConversation()
-                            ? openAiService.initHighscoreConversation(conversation)
-                            : openAiService.initConversation(conversation.getExercise(), conversation),
+                            ? LLMService.initHighscoreConversation(conversation)
+                            : LLMService.initConversation(conversation.getExercise(), conversation),
                     ConversationMember.PARTNER
             );
             partnerMessage.setConversationOfMessage(conversation);
@@ -90,8 +90,8 @@ public class ConversationServiceImpl implements ConversationService {
 
             partnerMessage = new Message(
                     conversation.isHighscoreConversation()
-                            ? openAiService.sendHighscoreMessage(conversation.getMessagesOfConversation(), conversation)
-                            : openAiService.generateMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation),
+                            ? LLMService.sendHighscoreMessage(conversation.getMessagesOfConversation(), conversation)
+                            : LLMService.generateMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation),
                     ConversationMember.PARTNER
             );
 
@@ -104,7 +104,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public List<Task> getEvaluatedTasks(Long conversationId) {
+    public List<Task> getFinishedTasks(Long conversationId) {
         Optional<Conversation> conversationOptional = conversationRepository.findById(conversationId);
         if (conversationOptional.isPresent() && conversationOptional.get().getMessagesOfConversation().size() > 1) {
             Conversation conversation = conversationOptional.get();
@@ -141,7 +141,7 @@ public class ConversationServiceImpl implements ConversationService {
 
 
     private List<Task> calcFinishedTasks(List<Message> allMessages, Exercise exercise, Conversation conversation) {
-        String evaluatedTaskMessage = openAiService.evaluateTasksInConversation(allMessages, exercise);
+        String evaluatedTaskMessage = LLMService.evaluateTasksInConversation(allMessages, exercise);
         log.debug("Das sind die bis jetzt erledigten Tasks: {}", evaluatedTaskMessage);
 
         List<String> evaluatedTasksList = Arrays.asList(evaluatedTaskMessage.split(","));
@@ -179,8 +179,8 @@ public class ConversationServiceImpl implements ConversationService {
     public Conversation createHighScoreConversation(Date conversationStartDate, Long learnerId) {
         Conversation conversation = new Conversation(conversationStartDate);
         conversation.setLearner(learnerService.findLearnerById(learnerId));
-        conversation.setSzenario(openAiService.createSzenario());
-        String[] roles = openAiService.decideRole(conversation.getSzenario());
+        conversation.setSzenario(LLMService.createSzenario());
+        String[] roles = LLMService.decideRole(conversation.getSzenario());
         conversation.setRoleUser(roles[0]);
         conversation.setRoleSystem(roles[1]);
         conversation.setHighscoreConversation(true);
@@ -208,7 +208,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .getMessage();
 
         if (conversation.getGender().isEmpty()) {
-            conversation.setGender(openAiService.decideGenderByName(conversation.getRoleSystem()));
+            conversation.setGender(LLMService.decideGenderByName(conversation.getRoleSystem()));
             conversationRepository.save(conversation);
         }
         byte[] audioBytes = text2SpeechService.synthesizeSpeech(lastMessage, conversation.getLearner().getLearningLanguage().getLanguageValue(), conversation.getGender());
@@ -226,7 +226,7 @@ public class ConversationServiceImpl implements ConversationService {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
         conversation.setTranslationCount(conversation.getTranslationCount() + 1);
         conversationRepository.save(conversation);
-        return openAiService.translateMessage(message);
+        return LLMService.translateMessage(message);
     }
 
 

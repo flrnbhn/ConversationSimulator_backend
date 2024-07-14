@@ -11,8 +11,8 @@ import org.flbohn.conversationsimulator_backend.evaluation.dto.EvaluationRespons
 import org.flbohn.conversationsimulator_backend.evaluation.dto.MistakeResponseDTO;
 import org.flbohn.conversationsimulator_backend.evaluation.repository.MistakeRepository;
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
-import org.flbohn.conversationsimulator_backend.llmservices.LanguageCheckService;
-import org.flbohn.conversationsimulator_backend.llmservices.OpenAiService;
+import org.flbohn.conversationsimulator_backend.otherservices.LLMService;
+import org.flbohn.conversationsimulator_backend.otherservices.LanguageCheckService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,31 +34,20 @@ public class EvaluationServiceImpl implements EvaluationService {
 
     private final MistakeRepository mistakeRepository;
 
-    private final OpenAiService openAiService;
+    private final LLMService LLMService;
 
 
     @Autowired
-    public EvaluationServiceImpl(LanguageCheckService languageCheckService, ConversationService conversationService, MistakeRepository mistakeRepository, OpenAiService openAiService) {
+    public EvaluationServiceImpl(LanguageCheckService languageCheckService, ConversationService conversationService, MistakeRepository mistakeRepository, LLMService LLMService) {
         this.languageCheckService = languageCheckService;
         this.conversationService = conversationService;
         this.mistakeRepository = mistakeRepository;
-        this.openAiService = openAiService;
-    }
-
-    @Override
-    public String checkLanguage(String text) {
-        String s = languageCheckService.checkLanguage(text).block();
-        log.warn(s);
-        return s;
-    }
-
-    public List<MistakeResponseDTO> receiveMistakes(String conversation) {
-        return languageCheckService.checkConversation_text(conversation).block();
+        this.LLMService = LLMService;
     }
 
     @Override
     @Transactional
-    public EvaluationResponseDTO receiveMistakesByConversation(Long conversationId) {
+    public EvaluationResponseDTO receiveEvaluationFromConversation(Long conversationId) {
         List<MistakeResponseDTO> allMistakeResponseDTOS = new ArrayList<>();
         Conversation conversation = conversationService.getConversationById(conversationId);
         List<Message> messages = conversation.getMessagesOfConversation().stream()
@@ -68,14 +57,14 @@ public class EvaluationServiceImpl implements EvaluationService {
         List<MistakeResponseDTO> currentMistakeResponseDTOS;
         for (Message message : messages) {
             if (message.isVoiceMessage()) {
-                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation_audio(message.getMessage())).block();
+                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversationMessage_audio(message.getMessage())).block();
             } else {
-                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversation_text(message.getMessage())).block();
+                currentMistakeResponseDTOS = Objects.requireNonNull(languageCheckService.checkConversationMessage_text(message.getMessage())).block();
             }
             persistMistakesInConversationAndMessage(currentMistakeResponseDTOS, conversation, message);
             allMistakeResponseDTOS.addAll(currentMistakeResponseDTOS);
         }
-        String evaluation = openAiService.evaluateConversation(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
+        String evaluation = LLMService.evaluateConversation(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
 
         Grade grade = assignGradeToConversation(conversation, allMistakeResponseDTOS, messages);
         Integer points = assignPointsToConversation(conversation, grade);
@@ -86,14 +75,14 @@ public class EvaluationServiceImpl implements EvaluationService {
 
 
     @Override
-    public List<MistakeResponseDTO> receiveMistakesByConversationInHighscoreGame(Long conversationId) {
+    public List<MistakeResponseDTO> receiveMistakesForHighscoreMessage(Long conversationId) {
         Conversation conversation = conversationService.getConversationById(conversationId);
         Message message = conversation.getMessagesOfConversation().get(conversation.getMessagesOfConversation().size() - 2);
         List<MistakeResponseDTO> mistakeResponseDTOs;
         if (message.isVoiceMessage()) {
-            mistakeResponseDTOs = Objects.requireNonNull(languageCheckService.checkConversation_audio(message.getMessage()).block());
+            mistakeResponseDTOs = Objects.requireNonNull(languageCheckService.checkConversationMessage_audio(message.getMessage()).block());
         } else {
-            mistakeResponseDTOs = Objects.requireNonNull(languageCheckService.checkConversation_text(message.getMessage()).block());
+            mistakeResponseDTOs = Objects.requireNonNull(languageCheckService.checkConversationMessage_text(message.getMessage()).block());
         }
         persistMistakesInConversationAndMessage(mistakeResponseDTOs, conversation, message);
 

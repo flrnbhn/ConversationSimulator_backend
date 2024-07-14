@@ -8,6 +8,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
+/**
+ * Service for managing exercises
+ */
 @Service
 public interface ExerciseService {
 
@@ -15,6 +19,9 @@ public interface ExerciseService {
 
     Exercise getExerciseById(long id);
 
+    /**
+     * Assigns a conversation to the exercise
+     */
     void setConversationInExercise(long id, Conversation conversation);
 
     List<Task> getAllTasksForExercise(long id);
