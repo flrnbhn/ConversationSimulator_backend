@@ -2,6 +2,7 @@ package org.flbohn.conversationsimulator_backend.learner.service;
 
 import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation;
 import org.flbohn.conversationsimulator_backend.conversation.repository.ConversationRepository;
+import org.flbohn.conversationsimulator_backend.conversation.types.ConversationStatus;
 import org.flbohn.conversationsimulator_backend.learner.domain.Learner;
 import org.flbohn.conversationsimulator_backend.learner.dto.HighScoreLearnersResponseDTO;
 import org.flbohn.conversationsimulator_backend.learner.repository.LearnerRepository;
@@ -60,7 +61,10 @@ public class LearnerServiceImpl implements LearnerService {
 
     @Override
     public List<Conversation> getAllConversationsFromLearner(long id) {
-        return learnerRepository.findById(id).orElseThrow().getConversations().stream().filter(conversation -> !conversation.isHighscoreConversation()).toList();
+        return learnerRepository.findById(id).orElseThrow().getConversations().stream()
+                .filter(conversation -> !conversation.isHighscoreConversation())
+                .filter(conversation -> conversation.getConversationStatus() == ConversationStatus.PASSED)
+                .toList();
     }
 
     @Override
@@ -78,6 +82,4 @@ public class LearnerServiceImpl implements LearnerService {
         learner.setLearningLanguage(learningLanguage);
         learnerRepository.save(learner);
     }
-
-
 }

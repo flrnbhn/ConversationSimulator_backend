@@ -4,6 +4,7 @@ import org.flbohn.conversationsimulator_backend.conversation.domain.Conversation
 import org.flbohn.conversationsimulator_backend.conversation.domain.Message;
 import org.flbohn.conversationsimulator_backend.conversation.service.ConversationService;
 import org.flbohn.conversationsimulator_backend.conversation.types.ConversationMember;
+import org.flbohn.conversationsimulator_backend.conversation.types.ConversationStatus;
 import org.flbohn.conversationsimulator_backend.conversation.types.Grade;
 import org.flbohn.conversationsimulator_backend.evaluation.domain.Mistake;
 import org.flbohn.conversationsimulator_backend.evaluation.dto.EvaluationResponseDTO;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,19 +53,18 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
     public List<MistakeResponseDTO> receiveMistakes(String conversation) {
-        //  List<MistakeResponseDTO> mistakeResponseDTOS = languageCheckService.checkConversation(conversation).block();
-        //persistieren
-        //   return mistakeResponseDTOS;
         return languageCheckService.checkConversation_text(conversation).block();
     }
 
     @Override
+    @Transactional
     public EvaluationResponseDTO receiveMistakesByConversation(Long conversationId) {
         List<MistakeResponseDTO> allMistakeResponseDTOS = new ArrayList<>();
         Conversation conversation = conversationService.getConversationById(conversationId);
         List<Message> messages = conversation.getMessagesOfConversation().stream()
                 .filter(message -> message.getConversationMember() == ConversationMember.USER)
                 .toList();
+
         List<MistakeResponseDTO> currentMistakeResponseDTOS;
         for (Message message : messages) {
             if (message.isVoiceMessage()) {
@@ -80,7 +81,7 @@ public class EvaluationServiceImpl implements EvaluationService {
         Integer points = assignPointsToConversation(conversation, grade);
         conversationService.saveConversation(conversation);
 
-        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points, evaluation, conversation.getTranslationCount());
+        return new EvaluationResponseDTO(allMistakeResponseDTOS, grade, points, evaluation, conversation.getTranslationCount(), conversation.getMessagesOfConversation().size() - 1);
     }
 
 
@@ -121,9 +122,11 @@ public class EvaluationServiceImpl implements EvaluationService {
 
     private Grade assignGradeToConversation(Conversation conversation, List<MistakeResponseDTO> mistakeResponseDTOS, List<Message> messages) {
         Grade grade = calculateGrade(mistakeResponseDTOS, messages, conversation);
-        conversation.setGradeOfConversation(grade);
-        conversation.getLearner().getAllGrades().add(grade);
-        conversation.getLearner().setGradeAverage(calcGradeAverage(conversation.getLearner()));
+        if (conversation.getConversationStatus() == ConversationStatus.PASSED) {
+            conversation.setGradeOfConversation(grade);
+            conversation.getLearner().getAllGrades().add(grade);
+            conversation.getLearner().setGradeAverage(calcGradeAverage(conversation.getLearner()));
+        }
         return grade;
     }
 
@@ -166,7 +169,12 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
     private int assignPointsToConversation(Conversation conversation, Grade grade) {
-        int points = (int) (17 - 3 * grade.getNumericValue());
+        int points;
+        if (conversation.getConversationStatus() == ConversationStatus.FAILED) {
+            points = -5;
+        } else {
+            points = (int) (18 - 3 * grade.getNumericValue());
+        }
         conversation.setPointsOfConversation(points);
         conversation.getLearner().setTotalPoints(conversation.getLearner().getTotalPoints() + points);
         return points;

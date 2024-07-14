@@ -9,7 +9,7 @@ public record HighScoreLearnersResponseDTO(
     public static HighScoreLearnersResponseDTO from(Conversation conversation) {
         return new HighScoreLearnersResponseDTO(
                 conversation.getLearner().getName(),
-                (long) conversation.getMessagesOfConversation().size()
+                (long) conversation.getMessagesOfConversation().size() - 1
         );
     }
 }

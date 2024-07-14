@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -51,6 +52,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Message initConversation(Long conversationId) {
         Optional<Conversation> conversationOptional = conversationRepository.findById(conversationId);
         Message partnerMessage = null;
@@ -65,6 +67,7 @@ public class ConversationServiceImpl implements ConversationService {
             );
             partnerMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(partnerMessage);
+            conversationRepository.save(conversation);
         }
         conversationOptional.orElseThrow();
 
@@ -72,6 +75,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Message createMessage(String messageString, ConversationMember conversationMember, Long conversationId, boolean isAudioMessage) throws NoSuchElementException {
         Message userMessage;
         userMessage = new Message(messageString, conversationMember, isAudioMessage);
@@ -87,21 +91,14 @@ public class ConversationServiceImpl implements ConversationService {
             partnerMessage = new Message(
                     conversation.isHighscoreConversation()
                             ? openAiService.sendHighscoreMessage(conversation.getMessagesOfConversation(), conversation)
-                            : openAiService.sendMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation),
+                            : openAiService.generateMessage(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation),
                     ConversationMember.PARTNER
             );
-
-
-           /* if (!conversation.isHighscoreConversation()) {
-                calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
-            }*/
 
             partnerMessage.setConversationOfMessage(conversation);
             conversation.getMessagesOfConversation().add(partnerMessage);
         }
         conversationOptional.orElseThrow();
-
-
         messageRepository.save(userMessage);
         return messageRepository.save(partnerMessage);
     }
@@ -111,7 +108,7 @@ public class ConversationServiceImpl implements ConversationService {
         Optional<Conversation> conversationOptional = conversationRepository.findById(conversationId);
         if (conversationOptional.isPresent() && conversationOptional.get().getMessagesOfConversation().size() > 1) {
             Conversation conversation = conversationOptional.get();
-            return calcEvaluatedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
+            return calcFinishedTasks(conversation.getMessagesOfConversation(), conversation.getExercise(), conversation);
         }
         return new ArrayList<>();
     }
@@ -122,6 +119,9 @@ public class ConversationServiceImpl implements ConversationService {
         if (conversationOpt.isPresent()) {
             Conversation conversation = conversationOpt.get();
             conversation.setConversationStatus(status);
+            if (conversation.getConversationStatus() != ConversationStatus.IN_PROCESS) {
+                conversationRepository.save(conversation);
+            }
             return true;
         } else {
             return false;
@@ -134,12 +134,13 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Conversation saveConversation(Conversation conversation) {
         return conversationRepository.save(conversation);
     }
 
 
-    private List<Task> calcEvaluatedTasks(List<Message> allMessages, Exercise exercise, Conversation conversation) {
+    private List<Task> calcFinishedTasks(List<Message> allMessages, Exercise exercise, Conversation conversation) {
         String evaluatedTaskMessage = openAiService.evaluateTasksInConversation(allMessages, exercise);
         log.debug("Das sind die bis jetzt erledigten Tasks: {}", evaluatedTaskMessage);
 
@@ -161,6 +162,7 @@ public class ConversationServiceImpl implements ConversationService {
 
 
     @Override
+    @Transactional
     public Conversation createConversation(Date conversationStartDate, Long exerciseId, Long learnerId) {
         Conversation conversation = new Conversation(conversationStartDate);
         conversation.setExercise(exerciseService.getExerciseById(exerciseId));
@@ -173,6 +175,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public Conversation createHighScoreConversation(Date conversationStartDate, Long learnerId) {
         Conversation conversation = new Conversation(conversationStartDate);
         conversation.setLearner(learnerService.findLearnerById(learnerId));
@@ -195,6 +198,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public String synthesizeMessageFromConversation(Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
         String lastMessage = conversation.getMessagesOfConversation().stream()
@@ -217,6 +221,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Transactional
     public String translateMessage(String message, Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
         conversation.setTranslationCount(conversation.getTranslationCount() + 1);

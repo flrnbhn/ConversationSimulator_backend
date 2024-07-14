@@ -9,6 +9,8 @@ public record EvaluationResponseDTO(
         Grade grade,
         Integer points,
         String evaluation,
-        Integer translationCount
+        Integer translationCount,
+        Integer numberOfMessages
+
 ) {
 }

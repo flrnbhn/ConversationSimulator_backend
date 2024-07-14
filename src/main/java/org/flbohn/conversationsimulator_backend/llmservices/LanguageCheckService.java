@@ -48,7 +48,8 @@ public class LanguageCheckService {
                 .uri("/check")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("accept", "application/json")
-                .bodyValue("text=" + text + "&language=auto")
+                .bodyValue("text=" + text + "&language=auto"
+                        + "&disabledCategories=PUNCTUATION, CASING")
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(this::parseResult);

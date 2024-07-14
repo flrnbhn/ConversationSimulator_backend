@@ -31,13 +31,13 @@ public class Conversation {
 
     private ConversationStatus conversationStatus;
 
-    @OneToMany(mappedBy = "conversationOfMessage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "conversationOfMessage", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Message> messagesOfConversation;
 
     @ManyToOne
     private Exercise exercise;
 
-    @ManyToMany(mappedBy = "conversationsWhereTaskCompleted", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "conversationsWhereTaskCompleted", cascade = CascadeType.REMOVE)
     private List<Task> completedTasks;
 
     @OneToMany(mappedBy = "conversationOfTheMistake", cascade = CascadeType.ALL, orphanRemoval = true)

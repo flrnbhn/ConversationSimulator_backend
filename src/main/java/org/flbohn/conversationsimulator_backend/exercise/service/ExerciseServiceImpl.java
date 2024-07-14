@@ -7,6 +7,7 @@ import org.flbohn.conversationsimulator_backend.exercise.dto.task.TaskRequestDTO
 import org.flbohn.conversationsimulator_backend.exercise.repository.ExerciseRepository;
 import org.flbohn.conversationsimulator_backend.exercise.repository.TaskRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -43,6 +44,7 @@ public class ExerciseServiceImpl implements ExerciseService {
     }
 
     @Override
+    @Transactional
     public Long createNewExercise(String title, String szenario, String furtherInformation, String roleUser, String roleSystem, Integer numberOfMessagesTillFailure, List<TaskRequestDTO> taskDTOList) {
         List<Task> taskList = taskDTOList.stream().map(taskResponseDTO -> new Task(taskResponseDTO.description())).toList();
         Exercise newExercise = new Exercise(title, szenario, furtherInformation, roleUser, roleSystem, numberOfMessagesTillFailure);

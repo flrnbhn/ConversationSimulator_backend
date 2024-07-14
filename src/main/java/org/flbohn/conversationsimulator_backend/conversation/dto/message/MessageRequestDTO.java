@@ -8,5 +8,4 @@ public record MessageRequestDTO(
         Long conversationID,
         boolean isAudioMessage
 ) {
-
 }
